@@ -65,11 +65,12 @@ public sealed class MultiHasher : IDisposable
         _sha256?.Dispose();
     }
 
-    /// <summary>Hash a whole stream from position 0.</summary>
-    public static FileHashes HashStream(Stream s, HashKinds kinds = HashKinds.All, CancellationToken ct = default)
+    /// <summary>Hash a whole stream from position 0, optionally reporting the bytes read to <paramref name="progress"/>.</summary>
+    public static FileHashes HashStream(Stream s, HashKinds kinds = HashKinds.All, CancellationToken ct = default,
+        IO.ProgressTracker? progress = null)
     {
         using var h = new MultiHasher(kinds);
-        IO.StreamCopier.CopyAll(s, null, null, ct, h);
+        IO.StreamCopier.CopyAll(s, null, progress, ct, h);
         return h.Finish();
     }
 }

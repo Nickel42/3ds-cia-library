@@ -200,7 +200,7 @@ public sealed class CtrConverter
         var cia = CiaFile.Read(src);
         byte[]? titleKey = cia.Contents.Any(c => c.Chunk.IsEncrypted) ? cia.Ticket.DecryptTitleKey(_keys) : null;
         var newChunks = cia.Tmd.Chunks.ToList();
-        var tracker = new ProgressTracker(progress, src.Length);
+        var tracker = new ProgressTracker(progress, CiaProgressTotal(src.Length, options));
         using var writer = new AtomicFileWriter(output, options.Overwrite);
         var dst = writer.Stream;
 
@@ -244,7 +244,7 @@ public sealed class CtrConverter
 
         dst.Position = cia.TmdOffset;
         dst.Write(cia.Tmd.Rebuild(newChunks));
-        return Finish(writer, output, CtrFileType.Cia, options, warnings, ct);
+        return Finish(writer, output, CtrFileType.Cia, options, warnings, tracker, ct);
     }
 
     // =========================================================== CCI → CCI ===
@@ -307,8 +307,7 @@ public sealed class CtrConverter
         byte[] header = CiaBuilder.BuildArchiveHeader(cert.Length, ticket.Length, tmdSize, meta.Length, contentSize,
             contents.Select(c => c.Index));
 
-        long total = (long)contentSize;
-        var tracker = new ProgressTracker(progress, total);
+        var tracker = new ProgressTracker(progress, CiaProgressTotal((long)contentSize, options));
         using var writer = new AtomicFileWriter(output, options.Overwrite);
         var dst = writer.Stream;
         dst.Write(header);
@@ -337,7 +336,7 @@ public sealed class CtrConverter
         }
         dst.Position = tmdOffset;
         dst.Write(CiaBuilder.BuildTmd(titleId, titleVersion, (uint)saveSize, chunks));
-        return Finish(writer, output, CtrFileType.Cia, options, warnings, ct);
+        return Finish(writer, output, CtrFileType.Cia, options, warnings, tracker, ct);
     }
 
     // =========================================================== CIA → CCI ===
@@ -470,12 +469,26 @@ public sealed class CtrConverter
         return new CtrOperationResult(Path.GetFullPath(output), type, hasher?.Finish(), warnings);
     }
 
+    /// <summary>Progress total for a CIA write: the bytes written, plus a read-back pass when output hashes are wanted.</summary>
+    private static long CiaProgressTotal(long writeBytes, CtrConvertOptions options) =>
+        options.ComputeOutputHashes ? writeBytes * 2 : writeBytes;
+
     private static CtrOperationResult Finish(AtomicFileWriter writer, string output, CtrFileType type,
-        CtrConvertOptions options, List<string> warnings, CancellationToken ct)
+        CtrConvertOptions options, List<string> warnings, ProgressTracker tracker, CancellationToken ct)
     {
         FileHashes? hashes = null;
         if (options.ComputeOutputHashes)
-            hashes = MultiHasher.HashStream(writer.Stream, HashKinds.All, ct);
+        {
+            // The read-back pass is part of the progress total, so the bar keeps moving instead of
+            // sitting at 100% while a large CIA is hashed. Count the header/metadata bytes written
+            // outside the tracked copies first, then settle the total on the real output size;
+            // that keeps the fraction from stepping backwards.
+            long written = writer.Stream.Length;
+            if (tracker.Processed < written) tracker.Advance(written - tracker.Processed);
+            tracker.TotalBytes = tracker.Processed + written;
+            tracker.SetStage("Hashing " + Path.GetFileName(output));
+            hashes = MultiHasher.HashStream(writer.Stream, HashKinds.All, ct, tracker);
+        }
         ct.ThrowIfCancellationRequested();
         writer.Commit();
         return new CtrOperationResult(Path.GetFullPath(output), type, hashes, warnings);

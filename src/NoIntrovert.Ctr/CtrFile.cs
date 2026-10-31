@@ -48,13 +48,15 @@ public static class CtrFile
     internal static FileStream OpenRead(string path) =>
         new(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1024 * 1024, FileOptions.SequentialScan);
 
-    /// <summary>Region guessed from the last letter of a product code such as CTR-P-ABCE.</summary>
+    /// <summary>
+    /// Region guessed from the last letter of the game code in a product code such as CTR-P-ABCE.
+    /// DLC and update codes carry a suffix (CTR-M-ABCE-00); the game code is still the third part.
+    /// </summary>
     public static string? RegionFromProductCode(string? productCode)
     {
         if (string.IsNullOrWhiteSpace(productCode)) return null;
-        string code = productCode.Trim();
-        int dash = code.LastIndexOf('-');
-        string game = dash >= 0 ? code[(dash + 1)..] : code;
+        string[] parts = productCode.Trim().Split('-');
+        string game = parts.Length >= 3 ? parts[2] : parts[^1];
         if (game.Length != 4) return null;
         return char.ToUpperInvariant(game[3]) switch
         {

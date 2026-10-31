@@ -199,6 +199,52 @@ public class ConverterTests
         Assert.Equal(1.0, seen[^1].Fraction, 3);
     }
 
+    [Theory]
+    [InlineData("game_b.cia")] // CIA decrypt
+    [InlineData("game_a.3ds")] // CCI -> CIA
+    public async Task Cia_output_reports_the_hash_pass_and_never_goes_backwards(string input)
+    {
+        using var tmp = new TempDir();
+        var seen = new List<NoIntrovert.Core.IO.OperationProgress>();
+        var progress = new SyncProgress(p => seen.Add(p));
+        if (input.EndsWith(".cia"))
+            await Converter().DecryptAsync(Fixtures.File(input), tmp.File("out.cia"), progress: progress);
+        else
+            await Converter().ConvertAsync(Fixtures.File(input), tmp.File("out.cia"), CtrOutputFormat.Cia, progress: progress);
+
+        int hashing = seen.FindIndex(p => p.Stage.StartsWith("Hashing"));
+        Assert.True(hashing > 0, "no Hashing stage was reported");
+        Assert.All(seen.Take(hashing), p => Assert.True(p.Fraction < 1.0, $"reached 100% before hashing ({p.Stage})"));
+        for (int i = 1; i < seen.Count; i++)
+            Assert.True(seen[i].Fraction >= seen[i - 1].Fraction, $"progress went backwards at '{seen[i].Stage}'");
+        Assert.Equal(1.0, seen[^1].Fraction, 3);
+    }
+
+    [Fact]
+    public async Task Cia_output_without_hashes_has_no_hash_stage_and_still_finishes_at_100()
+    {
+        using var tmp = new TempDir();
+        var seen = new List<NoIntrovert.Core.IO.OperationProgress>();
+        var r = await Converter().DecryptAsync(Fixtures.File("game_b.cia"), tmp.File("out.cia"),
+            new CtrConvertOptions { ComputeOutputHashes = false }, new SyncProgress(p => seen.Add(p)));
+        Assert.Null(r.OutputHashes);
+        Assert.DoesNotContain(seen, p => p.Stage.StartsWith("Hashing"));
+        Assert.Equal(1.0, seen[^1].Fraction, 3);
+    }
+
+    [Theory]
+    [InlineData("CTR-P-AJ8E", "USA")]
+    [InlineData("CTR-M-AXCE-00", "USA")]   // DLC
+    [InlineData("CTR-U-ABEE-00", "USA")]   // update
+    [InlineData("KTR-N-UAFE", "USA")]      // New 3DS
+    [InlineData("CTR-N-JSNP", "Europe")]
+    [InlineData("CTR-P-RCQA", "World")]
+    [InlineData("ABCJ", "Japan")]          // bare game code
+    [InlineData("GB-P-BL2M", null)]        // homebrew, no region letter
+    [InlineData("", null)]
+    public void Region_comes_from_the_game_code_even_with_a_suffix(string code, string? expected) =>
+        Assert.Equal(expected, CtrFile.RegionFromProductCode(code));
+
     private sealed class SyncProgress : IProgress<NoIntrovert.Core.IO.OperationProgress>
     {
         private readonly Action<NoIntrovert.Core.IO.OperationProgress> _a;
