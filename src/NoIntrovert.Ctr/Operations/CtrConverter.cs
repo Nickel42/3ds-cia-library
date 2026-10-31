@@ -31,8 +31,20 @@ public sealed class CtrConvertOptions
     /// <summary>Hash the output (CRC32/MD5/SHA-1/SHA-256). CIA outputs need an extra read pass for this.</summary>
     public bool ComputeOutputHashes { get; init; } = true;
 
-    /// <summary>Certificate chain for CCI→CIA. Falls back to <see cref="CtrKeyStore.CertificateChain"/>, then zeros.</summary>
+    /// <summary>
+    /// Certificate chain for CCI→CIA and CDN→CIA. Falls back to the certificates that came with a CDN
+    /// download, then <see cref="CtrKeyStore.CertificateChain"/>, then zeros.
+    /// </summary>
     public byte[]? CertificateChain { get; init; }
+
+    /// <summary>CDN→CIA: check every content against its TMD SHA-256 before writing (one extra read of the input).</summary>
+    public bool VerifyContents { get; init; } = true;
+
+    /// <summary>
+    /// CDN→CIA: when the ticket's title version differs from the TMD's, write the TMD's version into the
+    /// ticket. Installers ignore the mismatch; this only makes the CIA consistent.
+    /// </summary>
+    public bool MatchTicketVersionToTmd { get; init; }
 }
 
 /// <summary>Outcome of a conversion.</summary>
@@ -77,6 +89,7 @@ public sealed class CtrConverter
     public CtrOperationResult Decrypt(string input, string output, CtrConvertOptions options,
         IProgress<OperationProgress>? progress = null, CancellationToken ct = default)
     {
+        if (Directory.Exists(input)) return CdnToCia(input, output, options, decrypt: true, progress, ct);
         using var src = CtrFile.OpenRead(input);
         var type = CtrFile.Detect(src);
         return type switch
@@ -92,6 +105,12 @@ public sealed class CtrConverter
     public CtrOperationResult Convert(string input, string output, CtrOutputFormat target, CtrConvertOptions options,
         IProgress<OperationProgress>? progress = null, CancellationToken ct = default)
     {
+        if (Directory.Exists(input))
+        {
+            if (target != CtrOutputFormat.Cia)
+                throw new CtrFormatException("A CDN folder converts to CIA; convert that CIA to CCI afterwards.");
+            return CdnToCia(input, output, options, options.Decrypt, progress, ct);
+        }
         using var src = CtrFile.OpenRead(input);
         var type = CtrFile.Detect(src);
         switch (type, target)
@@ -193,10 +212,10 @@ public sealed class CtrConverter
         return new ConcatStream(pieces);
     }
 
-    private CtrOperationResult DecryptCia(FileStream src, string output, CtrConvertOptions options,
-        IProgress<OperationProgress>? progress, CancellationToken ct)
+    private CtrOperationResult DecryptCia(Stream src, string output, CtrConvertOptions options,
+        IProgress<OperationProgress>? progress, CancellationToken ct, List<string>? earlierWarnings = null)
     {
-        var warnings = new List<string>();
+        var warnings = earlierWarnings ?? new List<string>();
         var cia = CiaFile.Read(src);
         byte[]? titleKey = cia.Contents.Any(c => c.Chunk.IsEncrypted) ? cia.Ticket.DecryptTitleKey(_keys) : null;
         var newChunks = cia.Tmd.Chunks.ToList();
@@ -245,6 +264,137 @@ public sealed class CtrConverter
         dst.Position = cia.TmdOffset;
         dst.Write(cia.Tmd.Rebuild(newChunks));
         return Finish(writer, output, CtrFileType.Cia, options, warnings, tracker, ct);
+    }
+
+    // =========================================================== CDN → CIA ===
+
+    /// <summary>
+    /// Builds a CIA from a CDN download. The folder is laid out as a CIA in memory (archive header,
+    /// certificate chain, ticket, TMD, then the content files back to back) and that stream goes
+    /// through the normal CIA path: decrypted like any CIA, or copied as-is when encryption is kept.
+    /// </summary>
+    private CtrOperationResult CdnToCia(string folder, string output, CtrConvertOptions options, bool decrypt,
+        IProgress<OperationProgress>? progress, CancellationToken ct)
+    {
+        var cdn = CdnTitle.Open(folder);
+        var warnings = new List<string>(cdn.Warnings);
+        if (cdn.TicketVersionMismatch)
+            warnings.Add(options.MatchTicketVersionToTmd
+                ? $"Ticket title version ({cdn.Ticket.TitleVersion}) differed from the TMD ({cdn.Tmd.TitleVersion}); wrote {cdn.Tmd.TitleVersion} into the ticket."
+                : $"Ticket title version ({cdn.Ticket.TitleVersion}) does not match the TMD ({cdn.Tmd.TitleVersion}). "
+                  + "Installers ignore this; MatchTicketVersionToTmd (--match-ticket-version) writes a matching ticket.");
+        if (cdn.Missing.Count > 0)
+        {
+            string ids = string.Join(", ", cdn.Missing.Select(c => c.Id.ToString("x8")));
+            if (!cdn.IsDlc)
+                throw new CtrFormatException($"The CDN folder is missing content(s) {ids} listed in the TMD.");
+            warnings.Add($"DLC contents not in the folder were left out: {ids}.");
+        }
+
+        byte[]? chain = options.CertificateChain ?? cdn.BuildCertificateChain() ?? _keys.CertificateChain;
+        if (chain is null)
+        {
+            chain = new byte[CiaBuilder.DefaultCertChainSize];
+            warnings.Add("No certificate chain in the CDN folder or loaded; wrote a zero-filled one. Emulators accept this; for console installs load certificates from any CIA you own.");
+        }
+        byte[] ticket = cdn.TicketBytes(options.MatchTicketVersionToTmd);
+        byte[] tmd = cdn.Tmd.Raw;
+        ulong contentSize = (ulong)cdn.Contents.Sum(c => (long)c.Chunk.Size);
+        byte[] header = CiaBuilder.BuildArchiveHeader(chain.Length, ticket.Length, tmd.Length, 0, contentSize,
+            cdn.Contents.Select(c => (int)c.Chunk.Index));
+
+        var files = new List<FileStream>();
+        try
+        {
+            var pieces = new List<Stream>();
+            long pos = 0;
+            void Add(byte[] bytes, bool pad)
+            {
+                pieces.Add(new MemoryStream(bytes, writable: false));
+                pos += bytes.Length;
+                if (!pad) return;
+                long padding = CiaFile.Align(pos) - pos;
+                if (padding > 0) pieces.Add(new MemoryStream(new byte[padding], writable: false));
+                pos += padding;
+            }
+            Add(header, pad: true);
+            Add(chain, pad: true);
+            Add(ticket, pad: true);
+            Add(tmd, pad: true);
+            foreach (var c in cdn.Contents)
+            {
+                var fs = CtrFile.OpenRead(c.Path);
+                files.Add(fs);
+                pieces.Add(new SubStream(fs, 0, (long)c.Chunk.Size));
+            }
+            using var cia = new ConcatStream(pieces);
+
+            long verifyBytes = options.VerifyContents ? (long)contentSize : 0;
+            long writeTotal = CiaProgressTotal(cia.Length, options);
+            if (options.VerifyContents)
+                VerifyCdnContents(cdn, files, writeTotal, warnings, progress, ct);
+            var mapped = verifyBytes > 0 && progress is not null ? new OffsetProgress(progress, verifyBytes) : progress;
+
+            if (decrypt) return DecryptCia(cia, output, options, mapped, ct, warnings);
+
+            var tracker = new ProgressTracker(mapped, writeTotal);
+            using var writer = new AtomicFileWriter(output, options.Overwrite);
+            tracker.SetStage("Writing " + Path.GetFileName(output));
+            StreamCopier.CopyAll(cia, writer.Stream, tracker, ct);
+            return Finish(writer, output, CtrFileType.Cia, options, warnings, tracker, ct);
+        }
+        finally
+        {
+            foreach (var f in files) f.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Hashes each content with its title-key layer removed and compares it with the TMD, so a damaged
+    /// or incomplete download is caught before anything is written.
+    /// </summary>
+    private void VerifyCdnContents(CdnTitle cdn, IReadOnlyList<FileStream> files, long laterBytes, List<string> warnings,
+        IProgress<OperationProgress>? progress, CancellationToken ct)
+    {
+        byte[]? titleKey = null;
+        if (cdn.Contents.Any(c => c.Chunk.IsEncrypted))
+        {
+            try
+            {
+                titleKey = cdn.Ticket.DecryptTitleKey(_keys);
+            }
+            catch (MissingKeyException ex)
+            {
+                warnings.Add($"Contents were not verified: {ex.Message}");
+                return;
+            }
+        }
+
+        long total = cdn.Contents.Sum(c => (long)c.Chunk.Size);
+        var tracker = new ProgressTracker(progress, total + laterBytes);
+        for (int i = 0; i < cdn.Contents.Count; i++)
+        {
+            var chunk = cdn.Contents[i].Chunk;
+            tracker.SetStage($"Verifying content {chunk.Index}");
+            Stream data = new SubStream(files[i], 0, (long)chunk.Size);
+            if (chunk.IsEncrypted)
+            {
+                var iv = new byte[16];
+                System.Buffers.Binary.BinaryPrimitives.WriteUInt16BigEndian(iv, chunk.Index);
+                data = new NoIntrovert.Core.Crypto.AesCbcDecryptStream(data, titleKey!, iv);
+            }
+            using var sha = new MultiHasher(HashKinds.Sha256);
+            StreamCopier.CopyAll(data, null, tracker, ct, sha);
+            if (!System.Convert.FromHexString(sha.Finish().Sha256!).AsSpan().SequenceEqual(chunk.Hash))
+                throw new CtrFormatException($"Content {chunk.Id:x8} does not match its TMD hash (damaged download or wrong title key).");
+        }
+    }
+
+    /// <summary>Shifts a later step's progress past bytes already reported, so one bar covers both steps.</summary>
+    private sealed class OffsetProgress(IProgress<OperationProgress> inner, long offset) : IProgress<OperationProgress>
+    {
+        public void Report(OperationProgress value) =>
+            inner.Report(value with { BytesProcessed = value.BytesProcessed + offset, TotalBytes = value.TotalBytes + offset });
     }
 
     // =========================================================== CCI → CCI ===

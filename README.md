@@ -17,6 +17,9 @@ Pure C# (.NET 8, no NuGet dependencies) libraries for NoIntrovert:
 | CCI (.3ds, .cci) | ✓ (stays trimmed/untrimmed) | ✓ decrypt + trim/pad | ✓ | ✓ | ✓ |
 | CIA (.cia) | ✓ (title-key + NCCH layers) | ✓ game titles only | — | — | ✓ (TMD hashes) |
 | CXI / CFA | ✓ | — | — | — | ✓ |
+| CDN folder (`tmd`, `cetk`, content files) | ✓ (→ decrypted CIA) | via the CIA | ✓ | — | contents checked against the TMD |
+
+**CDN folders.** Pass the folder as the input. Raw CDN names (`tmd`, `cetk`, `00000000`) and NUSspli-style names (`title.tmd`, `title.tik`, `title.cert`, `00000000.app`) are both recognized; with several `tmd.<version>` files the highest is used. The certificates Nintendo appends to the TMD and ticket become the CIA's certificate chain. Every content is checked against its TMD SHA-256 before anything is written (`VerifyContents`). DLC folders may hold only some contents; other titles must be complete. A ticket whose title version differs from the TMD's (common in CDN downloads) is reported, and `MatchTicketVersionToTmd` writes a matching one. CDN folders convert to CIA only; convert that CIA to CCI afterwards.
 
 Encryption types: original (0x2C), 7.x (0x25), New 3DS 9.3 (0x18) and 9.6 (0x1B), seed crypto (seeddb), fixed zero key and fixed system key, CIA title-key (common keys 0–5).
 
@@ -101,6 +104,8 @@ dotnet run --project tools/NoIntrovert.Ctr.Cli -- info  "Game.3ds"
 dotnet run --project tools/NoIntrovert.Ctr.Cli -- decrypt "Game.3ds"                 # -> Game.decrypted.3ds
 dotnet run --project tools/NoIntrovert.Ctr.Cli -- convert "Game.3ds" --to cia
 dotnet run --project tools/NoIntrovert.Ctr.Cli -- convert "Game.cia" --to cci --no-trim
+dotnet run --project tools/NoIntrovert.Ctr.Cli -- convert "cdn/0004000000123400" --to cia   # CDN folder -> decrypted CIA
+dotnet run --project tools/NoIntrovert.Ctr.Cli -- convert "cdn/0004000000123400" --to cia --keep-encryption --match-ticket-version
 dotnet run --project tools/NoIntrovert.Ctr.Cli -- verify  roms/ --dat "Nintendo - Nintendo 3DS (Encrypted).dat"
 dotnet run --project tools/NoIntrovert.Ctr.Cli -- rename  roms/ --dat "...dat"        # dry run; add --apply
 ```

@@ -21,6 +21,8 @@ internal static class Program
           decrypt <in> [out]            Decrypt a .3ds/.cci, .cia, .cxi or .cfa (format kept)
           convert <in> --to cci|cia [out]
                                         Convert between CCI and CIA (decrypted by default)
+                                        <in> may also be a CDN folder (tmd, cetk and content
+                                        files) for --to cia, or for decrypt
           trim <in> [out]               Trim a CCI to the end of its last partition
           untrim <in> [out]             Pad a trimmed CCI back to its card size
           verify <file|dir>...          Hash, look up in DATs, check internal hashes
@@ -36,6 +38,8 @@ internal static class Program
           --dat <file>                  DAT file (Logiqx XML or ClrMamePro); repeatable
           --keep-encryption             convert: keep NCCH encryption
           --no-trim                     convert to CCI: pad to full card size
+          --match-ticket-version        CDN: write the TMD's title version into the ticket
+          --no-verify-contents          CDN: skip checking contents against the TMD
           --overwrite                   Replace existing output files
           --no-integrity                verify: skip internal hash checks
           --recursive                   verify/rename: include subfolders
@@ -181,8 +185,14 @@ internal static class Program
         Require(rest, 1, "decrypt <in> [out]");
         string input = rest[0];
         string output = rest.Count > 1 ? rest[1] : Sibling(input, ".decrypted" + Path.GetExtension(input));
-        var r = await new CtrConverter(keys).DecryptAsync(input, output,
-            new CtrConvertOptions { Overwrite = args.Has("--overwrite") }, new ConsoleProgress(), ct);
+        if (rest.Count == 1 && Directory.Exists(input))
+            output = Sibling(input, ".decrypted.cia");
+        var r = await new CtrConverter(keys).DecryptAsync(input, output, new CtrConvertOptions
+        {
+            Overwrite = args.Has("--overwrite"),
+            VerifyContents = !args.Has("--no-verify-contents"),
+            MatchTicketVersionToTmd = args.Has("--match-ticket-version"),
+        }, new ConsoleProgress(), ct);
         return Report(r);
     }
 
@@ -206,6 +216,8 @@ internal static class Program
             Decrypt = !args.Has("--keep-encryption"),
             Trim = !args.Has("--no-trim"),
             Overwrite = args.Has("--overwrite"),
+            VerifyContents = !args.Has("--no-verify-contents"),
+            MatchTicketVersionToTmd = args.Has("--match-ticket-version"),
         };
         var r = await new CtrConverter(keys).ConvertAsync(input, output, target, options, new ConsoleProgress(), ct);
         return Report(r);
