@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>NoIntrovert.Ctr</RootNamespace>
+    <Description>Nintendo 3DS (CTR) ROM decryption, CIA/CCI conversion, trimming, verification and renaming.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NoIntrovert.Core\NoIntrovert.Core.csproj" />
+    <ProjectReference Include="..\NoIntrovert.Dat\NoIntrovert.Dat.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NoIntrovert.Ctr.Tests" />
+  </ItemGroup>
+</Project>

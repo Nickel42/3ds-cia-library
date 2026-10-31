@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>NoIntrovert.Dat</RootNamespace>
+    <Description>Console-agnostic DAT (No-Intro / Redump) parsing, hash lookup and rename planning.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NoIntrovert.Core\NoIntrovert.Core.csproj" />
+  </ItemGroup>
+</Project>

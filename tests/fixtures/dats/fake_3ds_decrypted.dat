@@ -1,0 +1,11 @@
+clrmamepro (
+	name "Nintendo - Nintendo 3DS (Decrypted) [FAKE TEST DAT]"
+	description "Synthetic test DAT"
+	version 20261030
+)
+
+game (
+	name "Test Game (USA)"
+	description "Test Game (USA)"
+	rom ( name "Test Game (USA).3ds" size 134217728 crc 921B969A md5 C9FDFD476075464057E5667353824921 sha1 9B5C697CB418B2D819C71478C9C5A1859E60064F serial "CTR-P-ATGE" )
+)

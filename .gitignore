@@ -1,0 +1,6 @@
+bin/
+obj/
+*.user
+.vs/
+*.nointrovert.tmp
+reference/python/__pycache__/

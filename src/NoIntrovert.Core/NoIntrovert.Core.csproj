@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>NoIntrovert.Core</RootNamespace>
+    <Description>Shared stream, crypto and hashing primitives for NoIntrovert format libraries.</Description>
+  </PropertyGroup>
+</Project>

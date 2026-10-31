@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE datafile PUBLIC "-//Logiqx//DTD ROM Management Datafile//EN" "http://www.logiqx.com/dtds/datafile.dtd">
+<datafile>
+	<header>
+		<name>Nintendo - Nintendo 3DS (Encrypted) [FAKE TEST DAT]</name>
+		<description>Synthetic test DAT</description>
+		<version>20261030-000000</version>
+	</header>
+	<game name="Test Game (USA)" id="0001">
+		<description>Test Game (USA)</description>
+		<rom name="Test Game (USA).3ds" size="134217728" crc="284C57AF" md5="586cb0a2b164f07fe457628730c2cd80" sha1="8bdfbf35dcc9665c88f6324180d3c12ef542a727" sha256="3ced56634496ac5e6c0c566f7bfaa5d98c64ec98dc7df85ec3ecd93976f9603f" serial="CTR-P-ATGE" status="verified"/>
+	</game>
+	<game name="Seed Game (Japan) (eShop)" id="0002">
+		<description>Seed Game (Japan) (eShop)</description>
+		<rom name="Seed Game (Japan) (eShop).cia" size="84480" crc="bb858829" sha1="ac4f97d1bfe2add46e1557e24c1f35f0aeb7928d"/>
+	</game>
+	<game name="Unrelated &amp; Other (Europe)">
+		<description>Unrelated</description>
+		<rom name="Unrelated &amp; Other (Europe).3ds" size="134217728" crc="00000000" sha1="0000000000000000000000000000000000000000" serial="CTR-P-ZZZP"/>
+	</game>
+</datafile>

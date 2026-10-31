@@ -1,0 +1,99 @@
+{
+  "_facts": {
+    "game_a_media_size": 134217728,
+    "game_a_product": "CTR-P-ATGE",
+    "game_a_publisher": "NoIntrovert Labs",
+    "game_a_title": "Test Game",
+    "game_a_title_id": "0004000000ABCD00",
+    "game_a_used_size": 69632,
+    "game_b_product": "CTR-N-BSDJ",
+    "game_b_title_id": "0004000000BEEF00",
+    "scrambler_normal": "09c4bdce56980781e4e4ff89099d4162",
+    "scrambler_x": "000102030405060708090a0b0c0d0e0f",
+    "scrambler_y": "101112131415161718191a1b1c1d1e1f"
+  },
+  "game_a.cia": {
+    "crc32": "bc507bd9",
+    "md5": "326086273d21ebbb4e9aa9cffce598e2",
+    "sha1": "92fab7f175c48d30187c105c83e9de09715305d7",
+    "sha256": "7dc2f37d0bd31a12b86eee4b02128120c926707181f5274f04dcf8aa4b5bb23c",
+    "size": 82944
+  },
+  "game_a.decrypted.3ds": {
+    "crc32": "890e0335",
+    "md5": "2e715e10ee61c51fc8d3998937dc3a66",
+    "sha1": "0517e5bc1013c7ffd170a20ab1eb394b75dc8971",
+    "sha256": "41417f9297e6372548fde9d38b2e395a8d4868f2dda31711f87a8373117b04b6",
+    "size": 69632
+  },
+  "game_a.decrypted.untrimmed.3ds": {
+    "crc32": "921b969a",
+    "md5": "c9fdfd476075464057e5667353824921",
+    "sha1": "9b5c697cb418b2d819c71478c9c5a1859e60064f",
+    "sha256": "054ca561291d916dec6967a53e9d9b3a529a396e107c44bbb3227941a3d5d6da",
+    "size": 134217728
+  },
+  "game_a.keepenc.cia": {
+    "crc32": "b3318f2d",
+    "md5": "6ff332a1f197d6f45dd10d45f938132d",
+    "sha1": "a1f753e48328eea27fc16b0e7c1a207ab5132613",
+    "sha256": "d21d9da435a8fc6186eb32c11f13d4064684109c7454942940c2220297632f32",
+    "size": 82944
+  },
+  "game_a.nocert.cia": {
+    "crc32": "8da3ef4e",
+    "md5": "981a4a7ac824ccae1e90309bf5058b67",
+    "sha1": "665752b44be7eaebcf996b9f3f87fec778848052",
+    "sha256": "ae3eb2dd6f29d8e2ef48349bf563ec16d828a756eeb74dcc95a314dbf9db2066",
+    "size": 82944
+  },
+  "game_a.untrimmed.3ds": {
+    "crc32": "284c57af",
+    "md5": "586cb0a2b164f07fe457628730c2cd80",
+    "sha1": "8bdfbf35dcc9665c88f6324180d3c12ef542a727",
+    "sha256": "3ced56634496ac5e6c0c566f7bfaa5d98c64ec98dc7df85ec3ecd93976f9603f",
+    "size": 134217728
+  },
+  "game_b.3ds": {
+    "crc32": "a70980c9",
+    "md5": "22443d4f414094ecdd2a09c02f4ba345",
+    "sha1": "afe8629998826c590857c5c3512059407055c4ae",
+    "sha256": "fc6dfc8fc5f46e7034e658fde144134325690121f25018bc4fdd7b3186df301b",
+    "size": 71168
+  },
+  "game_b.decrypted.cia": {
+    "crc32": "2c83a313",
+    "md5": "e706aa7159219ebf951e5174c6ebc56d",
+    "sha1": "e5f7a345d1f0537d1ad16f6e7f89861901ccc8e2",
+    "sha256": "0be12fef6a1795c4f220e0eda84dea0e40bcf48068975a373243eb15b6c4106b",
+    "size": 84480
+  },
+  "game_b.keepenc.3ds": {
+    "crc32": "13725c3e",
+    "md5": "f05beadd1fbabdaf2febddf688157a6c",
+    "sha1": "8c738c14d7114639949c98dc6d9d850931f88cc3",
+    "sha256": "732ddfbae482ec1bce5c64e104071e384d652d99235cc48206a77673c32f0093",
+    "size": 71168
+  },
+  "game_b.untrimmed.3ds": {
+    "crc32": "5243efe9",
+    "md5": "2a09f4bd594cdf3a4cf1c862a32dc6fb",
+    "sha1": "507aa4cae66ac45fd0be9bc1e61e490518bf3c30",
+    "sha256": "8a8d806d7ceae454e9b31ab007d410d4ff3665917f8fbb4f645eba1e8efcabda",
+    "size": 134217728
+  },
+  "system_fixed.decrypted.cxi": {
+    "crc32": "5d90e14f",
+    "md5": "6b47a8daefb13f1702ea6029688bb275",
+    "sha1": "bdbb1f079a1aad4de311f40e4d2cb1fa3162e58c",
+    "sha256": "09df533cb8bed571928b0d9d430cc3a32b1f25ec2f6aa067f061b21b8c96a88f",
+    "size": 44544
+  },
+  "zero_fixed.decrypted.cxi": {
+    "crc32": "ee5b10f3",
+    "md5": "c89f180a2f722eba044ff53b922cbbbf",
+    "sha1": "f52074a792035920dea801faaba2517a392824e3",
+    "sha256": "767201b7ef7b2b8c14d67a1bce30e8e800b0a2a224b54ab004caba00b9fe5383",
+    "size": 41472
+  }
+}

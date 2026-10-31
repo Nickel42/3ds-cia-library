@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>ni3ds</AssemblyName>
+    <RootNamespace>NoIntrovert.Ctr.Cli</RootNamespace>
+    <Description>Command-line harness for NoIntrovert.Ctr (testing without the UI).</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NoIntrovert.Ctr\NoIntrovert.Ctr.csproj" />
+  </ItemGroup>
+</Project>
