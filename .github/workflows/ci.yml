@@ -30,14 +30,14 @@ jobs:
             8.0.x
             10.0.x
       - name: Build
-        run: dotnet build 3ds-cia-library.sln -c Release
+        run: dotnet build lib-3ds-kit.sln -c Release
       - name: Test (net8.0 and net10.0)
-        run: dotnet test 3ds-cia-library.sln -c Release --no-build --logger "trx;LogFilePrefix=${{ matrix.os }}"
+        run: dotnet test lib-3ds-kit.sln -c Release --no-build --logger "trx;LogFilePrefix=${{ matrix.os }}"
       - name: CLI smoke test
         shell: bash
         run: |
-          dotnet tools/3ds-cia-library.Cli/bin/Release/net10.0/3ds.dll --help
-          dotnet tools/3ds-cia-library.Cli/bin/Release/net10.0/3ds.dll --keys-dir tests/fixtures/keys --allow-unknown-boot9 info tests/fixtures/game_a.3ds
+          dotnet tools/lib-3ds-kit.Cli/bin/Release/net10.0/3ds-kit.dll --help
+          dotnet tools/lib-3ds-kit.Cli/bin/Release/net10.0/3ds-kit.dll --keys-dir tests/fixtures/keys --allow-unknown-boot9 info tests/fixtures/game_a.3ds
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -71,8 +71,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      - name: Pack the library and the 3ds tool
-        run: dotnet pack 3ds-cia-library.sln -c Release -o artifacts
+      - name: Pack the library and the 3ds-kit tool
+        run: dotnet pack lib-3ds-kit.sln -c Release -o artifacts
       - uses: actions/upload-artifact@v4
         with:
           name: packages

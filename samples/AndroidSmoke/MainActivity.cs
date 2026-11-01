@@ -1,8 +1,8 @@
 using Android.App;
 using Android.OS;
 using Android.Widget;
-using ThreeDsCiaLibrary;
-using ThreeDsCiaLibrary.Keys;
+using Lib3dsKit;
+using Lib3dsKit.Keys;
 
 namespace AndroidSmoke;
 

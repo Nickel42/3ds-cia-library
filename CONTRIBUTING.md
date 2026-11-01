@@ -31,5 +31,5 @@ dotnet build samples/AndroidSmoke -c Release
    git tag v0.11.0
    git push origin v0.11.0
    ```
-3. The **Release** workflow tests and packs everything with that version, builds the standalone `3ds` binaries, and creates a GitHub release with all of them attached.
-4. If the repository has a `NUGET_API_KEY` secret (an API key from nuget.org scoped to the `3ds-cia-library*` packages), the workflow also pushes the packages to nuget.org.
+3. The **Release** workflow tests and packs everything with that version, builds the standalone `3ds-kit` binaries, and creates a GitHub release with all of them attached.
+4. If the repository has a `NUGET_API_KEY` secret (an API key from nuget.org scoped to the `lib-3ds-kit*` packages), the workflow also pushes the packages to nuget.org.
