@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>NoIntrovert.Dat</RootNamespace>
-    <Description>Console-agnostic DAT (No-Intro / Redump) parsing, hash lookup and rename planning.</Description>
+    <Description>Console-agnostic ROM DAT support: Logiqx XML and ClrMamePro parsing (No-Intro, Redump), lookup by hash or serial, file-name templates and collision-safe rename plans.</Description>
+    <PackageTags>dat;no-intro;redump;logiqx;clrmamepro;rom;rename</PackageTags>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NoIntrovert.Core\NoIntrovert.Core.csproj" />

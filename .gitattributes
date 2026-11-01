@@ -1,0 +1,13 @@
+# Normalise line endings in text files; check out with the platform's native endings.
+* text=auto
+
+# Test fixtures are compared byte for byte against the Python reference: never touch them.
+tests/fixtures/** -text
+*.bin   binary
+*.3ds   binary
+*.cci   binary
+*.cia   binary
+*.cxi   binary
+*.cfa   binary
+*.nupkg binary
+*.snupkg binary
