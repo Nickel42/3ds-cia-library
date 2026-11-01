@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <AssemblyName>3ds</AssemblyName>
+    <RootNamespace>ThreeDsCiaLibrary.Cli</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Installable with `dotnet tool install -g 3ds-cia-library.Cli`; standalone binaries come from the release workflow. -->
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <PackageId>3ds-cia-library.Cli</PackageId>
+    <ToolCommandName>3ds</ToolCommandName>
+    <Description>3ds: command-line tool for converting and decrypting Nintendo 3DS files, built on 3ds-cia-library. Show key status and file info, decrypt, convert CCI ↔ CIA, build CIAs from CDN folders, trim and untrim, and check internal hashes.</Description>
+    <PackageTags>3ds;nintendo-3ds;cia;cci;cdn;decrypt;cli;dotnet-tool</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\3ds-cia-library\3ds-cia-library.csproj" />
+  </ItemGroup>
+</Project>

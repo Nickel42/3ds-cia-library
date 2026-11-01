@@ -1,7 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <RootNamespace>NoIntrovert.Core</RootNamespace>
-    <Description>Streaming building blocks for ROM tools: windowed, concatenated and overlay streams; random-access AES-CTR and AES-CBC; CRC32, MD5, SHA-1 and SHA-256 in one pass; atomic output files; throttled progress.</Description>
-    <PackageTags>streams;aes-ctr;aes-cbc;crc32;hashing;rom</PackageTags>
-  </PropertyGroup>
-</Project>

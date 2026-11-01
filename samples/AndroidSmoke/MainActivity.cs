@@ -1,8 +1,8 @@
 using Android.App;
 using Android.OS;
 using Android.Widget;
-using NoIntrovert.Ctr;
-using NoIntrovert.Ctr.Keys;
+using ThreeDsCiaLibrary;
+using ThreeDsCiaLibrary.Keys;
 
 namespace AndroidSmoke;
 

@@ -1,26 +1,25 @@
 // The examples from the README, as a program CI compiles on every change.
-// usage: QuickStart <keys-folder> <file-or-cdn-folder> [output-folder] [dat-file]
-using NoIntrovert.Core.IO;
-using NoIntrovert.Ctr;
-using NoIntrovert.Ctr.Keys;
-using NoIntrovert.Ctr.Ncch;
-using NoIntrovert.Ctr.Operations;
-using NoIntrovert.Ctr.Verification;
-using NoIntrovert.Dat;
+// usage: QuickStart <keys-folder> <file-or-cdn-folder> [output-folder]
+using ThreeDsCiaLibrary;
+using ThreeDsCiaLibrary.IO;
+using ThreeDsCiaLibrary.Keys;
+using ThreeDsCiaLibrary.Ncch;
+using ThreeDsCiaLibrary.Operations;
+using ThreeDsCiaLibrary.Verification;
 
 if (args.Length < 2)
 {
-    Console.WriteLine("usage: QuickStart <keys-folder> <file-or-cdn-folder> [output-folder] [dat-file]");
+    Console.WriteLine("usage: QuickStart <keys-folder> <file-or-cdn-folder> [output-folder]");
     return 1;
 }
 string keysFolder = args[0], input = args[1];
 string outputFolder = args.Length > 2 ? args[2] : Path.GetTempPath();
-string? datFile = args.Length > 3 ? args[3] : null;
+string output = Path.Combine(outputFolder, "quickstart.cia");
 
 var keys = LoadKeys(keysFolder);
 Inspect(input, keys);
-await Convert(input, Path.Combine(outputFolder, "quickstart.cia"), keys);
-await Verify(input, keys, datFile);
+if (await Convert(input, output, keys))
+    await Verify(output, keys);
 return 0;
 
 // --- Load keys ----------------------------------------------------------------------------
@@ -46,7 +45,7 @@ static void Inspect(string path, CtrKeyStore keys)
 }
 
 // --- Convert / decrypt ---------------------------------------------------------------------
-static async Task Convert(string input, string output, CtrKeyStore keys)
+static async Task<bool> Convert(string input, string output, CtrKeyStore keys)
 {
     var converter = new CtrConverter(keys);
     var progress = new Progress<OperationProgress>(p => Console.Write($"\r{p.Stage}: {p.Fraction:P0}   "));
@@ -57,6 +56,7 @@ static async Task Convert(string input, string output, CtrKeyStore keys)
             new CtrConvertOptions { Overwrite = true }, progress);
         Console.WriteLine($"\nWrote {result.OutputPath} (SHA-256 {result.OutputHashes?.Sha256})");
         foreach (var w in result.Warnings) Console.WriteLine($"  note: {w}");
+        return true;
     }
     catch (MissingKeyException ex)
     {
@@ -66,15 +66,13 @@ static async Task Convert(string input, string output, CtrKeyStore keys)
     {
         Console.WriteLine($"\nCannot convert: {ex.Message}");
     }
+    return false;
 }
 
-// --- Verify against a No-Intro DAT -----------------------------------------------------------
-static async Task Verify(string path, CtrKeyStore keys, string? datFile)
+// --- Check the result's internal hashes ------------------------------------------------------
+static async Task Verify(string path, CtrKeyStore keys)
 {
-    if (Directory.Exists(path)) return;
-    DatIndex? dats = datFile is null ? null : DatIndex.FromFiles([datFile]);
-    var verifier = new CtrVerifier(keys, dats);
-    CtrVerifyReport report = await verifier.VerifyAsync(path);
-    Console.WriteLine($"{report.Verdict}: {report.Match.Rom?.Game.Name ?? "(not in DAT)"}, "
-                      + $"{report.Checks.Count(c => c.Status == CheckStatus.Pass)} internal check(s) passed");
+    CtrVerifyReport report = await new CtrVerifier(keys).VerifyAsync(path);
+    // report.Verdict: Intact / Unknown / Bad
+    Console.WriteLine($"{report.Verdict}: {report.Checks.Count(c => c.Status == CheckStatus.Pass)} internal check(s) passed");
 }

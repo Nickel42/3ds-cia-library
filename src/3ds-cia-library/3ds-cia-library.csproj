@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>3ds-cia-library</AssemblyName>
+    <PackageId>3ds-cia-library</PackageId>
+    <RootNamespace>ThreeDsCiaLibrary</RootNamespace>
+    <Description>Convert and decrypt Nintendo 3DS files: decrypt CCI (.3ds), CIA, CXI and CFA; convert CCI ↔ CIA; build CIAs from CDN downloads; trim and untrim; inspect titles and check internal hashes. Pure managed, no dependencies; bring your own keys.</Description>
+    <PackageTags>3ds;nintendo-3ds;ctr;cia;cci;ncch;ncsd;cdn;rom;decrypt;convert</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="3ds-cia-library.Tests" />
+  </ItemGroup>
+</Project>

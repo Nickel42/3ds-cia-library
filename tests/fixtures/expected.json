@@ -2,7 +2,7 @@
   "_facts": {
     "game_a_media_size": 134217728,
     "game_a_product": "CTR-P-ATGE",
-    "game_a_publisher": "NoIntrovert Labs",
+    "game_a_publisher": "Example Labs",
     "game_a_title": "Test Game",
     "game_a_title_id": "0004000000ABCD00",
     "game_a_used_size": 69632,
@@ -13,87 +13,87 @@
     "scrambler_y": "101112131415161718191a1b1c1d1e1f"
   },
   "game_a.cia": {
-    "crc32": "bc507bd9",
-    "md5": "326086273d21ebbb4e9aa9cffce598e2",
-    "sha1": "92fab7f175c48d30187c105c83e9de09715305d7",
-    "sha256": "7dc2f37d0bd31a12b86eee4b02128120c926707181f5274f04dcf8aa4b5bb23c",
+    "crc32": "088d8529",
+    "md5": "73db378ee14f6ce2d66e2b30b8540538",
+    "sha1": "5b205cf781b6e55e3d8099b7ce97ed6ec7b5dd83",
+    "sha256": "290e3f71de1f74f7706b85bc6838d36759c9e368fd96fe8cd66c7e7618148fe2",
     "size": 82944
   },
   "game_a.decrypted.3ds": {
-    "crc32": "890e0335",
-    "md5": "2e715e10ee61c51fc8d3998937dc3a66",
-    "sha1": "0517e5bc1013c7ffd170a20ab1eb394b75dc8971",
-    "sha256": "41417f9297e6372548fde9d38b2e395a8d4868f2dda31711f87a8373117b04b6",
+    "crc32": "166ee692",
+    "md5": "e9e90c6ce8c99b95df97ea173254c8fc",
+    "sha1": "dca79c2d7de3ea4ba8ae0d383706e7a59b8f66c8",
+    "sha256": "658ea8241065f55a593594bcf3bd9a7016e6313c48436d7e4ba432bc8e471531",
     "size": 69632
   },
   "game_a.decrypted.untrimmed.3ds": {
-    "crc32": "921b969a",
-    "md5": "c9fdfd476075464057e5667353824921",
-    "sha1": "9b5c697cb418b2d819c71478c9c5a1859e60064f",
-    "sha256": "054ca561291d916dec6967a53e9d9b3a529a396e107c44bbb3227941a3d5d6da",
+    "crc32": "2636a3cf",
+    "md5": "a5f75bd85c5d8148af6d3979444f5e1b",
+    "sha1": "473eb6c9efe4d951c6a105d3c4d55ef9f57730d8",
+    "sha256": "1262e169a1ea1b0f3fb9eae09a1d6a4cb702aa43a192d4721e745acd622bed34",
     "size": 134217728
   },
   "game_a.keepenc.cia": {
-    "crc32": "b3318f2d",
-    "md5": "6ff332a1f197d6f45dd10d45f938132d",
-    "sha1": "a1f753e48328eea27fc16b0e7c1a207ab5132613",
-    "sha256": "d21d9da435a8fc6186eb32c11f13d4064684109c7454942940c2220297632f32",
+    "crc32": "9749c813",
+    "md5": "3bc81511d9ae7cdb487b6b8926246b38",
+    "sha1": "ca986ed2a1cc4a902532a858af5f1df4ddc073c0",
+    "sha256": "6e04c529758729e90b6f63b627378df061734022544c07dc743bf42cdad764f7",
     "size": 82944
   },
   "game_a.nocert.cia": {
-    "crc32": "8da3ef4e",
-    "md5": "981a4a7ac824ccae1e90309bf5058b67",
-    "sha1": "665752b44be7eaebcf996b9f3f87fec778848052",
-    "sha256": "ae3eb2dd6f29d8e2ef48349bf563ec16d828a756eeb74dcc95a314dbf9db2066",
+    "crc32": "397e11be",
+    "md5": "57ac271cca5dcee4c95dd08020d821c4",
+    "sha1": "bb0d0888d1703f281ad68ac5b419a79b3386f637",
+    "sha256": "ecc909efd87b424a0ce76ff809efafc169a1ef9bac20682ecf865c9ecacd404a",
     "size": 82944
   },
   "game_a.untrimmed.3ds": {
-    "crc32": "284c57af",
-    "md5": "586cb0a2b164f07fe457628730c2cd80",
-    "sha1": "8bdfbf35dcc9665c88f6324180d3c12ef542a727",
-    "sha256": "3ced56634496ac5e6c0c566f7bfaa5d98c64ec98dc7df85ec3ecd93976f9603f",
+    "crc32": "9c6162fa",
+    "md5": "88f234702f5fdf27e12a8152c4a18ca7",
+    "sha1": "62f6f8eafce38a9dfeef18c556a1878ad01baab7",
+    "sha256": "9f800b1f86c0764f193462dd81d0847023d880bf299cac1f1519b442c963453f",
     "size": 134217728
   },
   "game_b.3ds": {
-    "crc32": "a70980c9",
-    "md5": "22443d4f414094ecdd2a09c02f4ba345",
-    "sha1": "afe8629998826c590857c5c3512059407055c4ae",
-    "sha256": "fc6dfc8fc5f46e7034e658fde144134325690121f25018bc4fdd7b3186df301b",
+    "crc32": "b25e7036",
+    "md5": "ceaf922d6c80cc866fe7570fa598f723",
+    "sha1": "4c13d9ba80071ce04ebcd2c3c1104847fda2e65c",
+    "sha256": "052b66558d0987c1a11cfc4046fb4d5ab63500c453413d12673551833837635f",
     "size": 71168
   },
   "game_b.decrypted.cia": {
-    "crc32": "2c83a313",
-    "md5": "e706aa7159219ebf951e5174c6ebc56d",
-    "sha1": "e5f7a345d1f0537d1ad16f6e7f89861901ccc8e2",
-    "sha256": "0be12fef6a1795c4f220e0eda84dea0e40bcf48068975a373243eb15b6c4106b",
+    "crc32": "787b86d0",
+    "md5": "e86b3ff8c19dcf8f668dbeabf6cc657f",
+    "sha1": "8ca6f681f8fde03dadece8a1a56f87a48c8929ac",
+    "sha256": "436b6e50f1433f796579ddff911eacbfec3b254c2bc877993481c77a68dc2882",
     "size": 84480
   },
   "game_b.keepenc.3ds": {
-    "crc32": "13725c3e",
-    "md5": "f05beadd1fbabdaf2febddf688157a6c",
-    "sha1": "8c738c14d7114639949c98dc6d9d850931f88cc3",
-    "sha256": "732ddfbae482ec1bce5c64e104071e384d652d99235cc48206a77673c32f0093",
+    "crc32": "0625acc1",
+    "md5": "a10eecfc3b1db4315797d1da23e43e17",
+    "sha1": "2dd1e84796c994b1b8066441611f2a0adc82fb6b",
+    "sha256": "07b23d20415083819e675446adfbd2425a5498b276442bd4fc522da1377b8633",
     "size": 71168
   },
   "game_b.untrimmed.3ds": {
-    "crc32": "5243efe9",
-    "md5": "2a09f4bd594cdf3a4cf1c862a32dc6fb",
-    "sha1": "507aa4cae66ac45fd0be9bc1e61e490518bf3c30",
-    "sha256": "8a8d806d7ceae454e9b31ab007d410d4ff3665917f8fbb4f645eba1e8efcabda",
+    "crc32": "296d44f6",
+    "md5": "3192ecac4bb9f08ccb8281b1c70fd5df",
+    "sha1": "6dcc0ebad721905def1ef3b9df7e969c3b771223",
+    "sha256": "a6f34e3cbdb4e539467f48fa68aa995abc84983c4b6fbbbdd9e42f5c77f0015d",
     "size": 134217728
   },
   "system_fixed.decrypted.cxi": {
-    "crc32": "5d90e14f",
-    "md5": "6b47a8daefb13f1702ea6029688bb275",
-    "sha1": "bdbb1f079a1aad4de311f40e4d2cb1fa3162e58c",
-    "sha256": "09df533cb8bed571928b0d9d430cc3a32b1f25ec2f6aa067f061b21b8c96a88f",
+    "crc32": "fdd1a852",
+    "md5": "cccbc05a265a67b580befc05c39c74a8",
+    "sha1": "49be733023de8be98aed18c7f587c2139880f7be",
+    "sha256": "b80fee773152b3f466d3d46a81f5ff52fc919898ec9e50d1075b9c807597df7a",
     "size": 44544
   },
   "zero_fixed.decrypted.cxi": {
-    "crc32": "ee5b10f3",
-    "md5": "c89f180a2f722eba044ff53b922cbbbf",
-    "sha1": "f52074a792035920dea801faaba2517a392824e3",
-    "sha256": "767201b7ef7b2b8c14d67a1bce30e8e800b0a2a224b54ab004caba00b9fe5383",
+    "crc32": "c7270a31",
+    "md5": "6c6d29210886adebfce0f53e8138e1a7",
+    "sha1": "35400590b6c3987da2a2345b709e1557f2e26c3a",
+    "sha256": "208ef9ac91a9315752efdc3199336a6af1f359ca0887bd64bade722e1ac1021b",
     "size": 41472
   }
 }
