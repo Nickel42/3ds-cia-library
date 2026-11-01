@@ -96,16 +96,12 @@ Trim keeps bytes [0, end of last partition). Untrim appends 0xFF up to the media
 
 ## Verification
 
-- **Whole-file hashes:** CRC32, MD5, SHA-1 and SHA-256 in one pass. For a trimmed CCI, a second hash set covers the bytes plus virtual 0xFF padding up to the media size.
-- **DAT lookup order:**
-  1. SHA-256, SHA-1 or MD5 match, with size checked if the DAT lists one.
-  2. CRC32 + size, but only when no stronger hash is available on both sides to disagree.
-  3. Product-code (serial) match. This is not a verification, but it is used for naming.
+- **Whole-file hashes:** CRC32, MD5, SHA-1 and SHA-256 in one pass.
+- **Internal checks:** the TMD SHA-256 of every CIA content, plus each NCCH's extended header, logo, ExeFS superblock, every ExeFS file and RomFS superblock. Encrypted NCCHs are checked through decryption, so they need keys.
 - **Verdicts:**
   - `Bad`: any internal hash failed.
-  - `Verified` / `VerifiedUntrimmed`: hash match.
-  - `IntactNotInDat`: all internal checks passed but no hash match.
-  - `Unknown`: no hash match, and some checks were skipped or none were run.
+  - `Intact`: every internal check passed.
+  - `Unknown`: some checks were skipped (e.g. missing keys) or none apply.
 
 ## Missing keys
 
@@ -114,10 +110,9 @@ With `Decrypt = true`, a missing key throws `MissingKeyException`; the C# code n
 ## Known limitations
 
 - **Paths, not streams:** the public API takes file paths. Apps that receive streams or content URIs (Android's Storage Access Framework, iOS document pickers) copy the file into their own storage first.
-
 - **No re-encryption:** decrypted → encrypted conversion is not supported. The original flags are lost on decryption, and nothing downstream needs it.
 - **No Z3DS:** Azahar's compressed formats (.zcci/.zcia/.zcxi) are not supported yet.
 - **DSiWare:** SRL contents in CIAs are CBC-decrypted and hash-checked, but not parsed.
 - **RomFS:** only the superblock (IVFC header and master hash) is verified, not every IVFC level. Full integrity of a CIA is still covered by the TMD content hashes.
-- **Decrypted DAT matching is unconfirmed:** No-Intro's *Decrypted* DAT is believed to follow GodMode9's flag convention, which this library implements. Byte-exact agreement with that DAT has not yet been confirmed on real dumps.
+- **Decrypted header flags follow GodMode9:** decrypting sets the NCCH "no crypto" flag the way GodMode9 does. Byte-exact agreement with decrypted cartridge dumps made by other tools has not been confirmed on real dumps.
 - **CCI headers from CIAs** cannot be authentic. Signature, card unique data and save crypto flags are placeholders. They work for emulators and flashcarts/CFW that accept CIA-derived CCIs, but not for reproducing original dumps.

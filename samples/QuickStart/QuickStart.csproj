@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <!-- In your own project: <PackageReference Include="NoIntrovert.Ctr" Version="0.10.0" /> -->
-    <ProjectReference Include="..\..\src\NoIntrovert.Ctr\NoIntrovert.Ctr.csproj" />
+    <!-- In your own project: <PackageReference Include="3ds-cia-library" Version="0.11.0" /> -->
+    <ProjectReference Include="..\..\src\3ds-cia-library\3ds-cia-library.csproj" />
   </ItemGroup>
 </Project>

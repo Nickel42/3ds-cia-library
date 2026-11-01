@@ -1,20 +1,18 @@
 # 3ds-cia-library
 
-Pure C# libraries for working with Nintendo 3DS files in any .NET app: decrypt, convert between CCI (`.3ds`) and CIA, build CIAs from CDN downloads, trim and untrim, inspect titles, and verify and rename against No-Intro DATs. No native code, no dependencies, no keys bundled.
+A pure C# library for converting and decrypting Nintendo 3DS files in any .NET app: decrypt CCI (`.3ds`), CIA, CXI and CFA files, convert between CCI and CIA, build CIAs from CDN downloads, and trim or untrim cartridge images. It can also read a file's title and encryption details, and check the hashes stored inside it to confirm a result came out intact. No native code, no dependencies, no keys bundled.
 
 [![CI](https://github.com/Nickel42/3ds-cia-library/actions/workflows/ci.yml/badge.svg)](https://github.com/Nickel42/3ds-cia-library/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Nickel42/3ds-cia-library/blob/main/LICENSE)
 
-| Package | What it does |
+| Package | What it is |
 |---|---|
-| **NoIntrovert.Ctr** | The 3DS library: keys, decryption, CCI ↔ CIA, CDN → CIA, trim/untrim, inspection, verification, renaming. Depends on the two below. |
-| **NoIntrovert.Dat** | Console-agnostic DAT support: Logiqx XML and ClrMamePro parsing (No-Intro, Redump), lookup by hash or serial, file-name templates and collision-safe rename plans. |
-| **NoIntrovert.Core** | Streaming building blocks: windowed, concatenated and overlay streams, random-access AES-CTR/CBC, CRC32 + MD5 + SHA-1 + SHA-256 in one pass, atomic output files, throttled progress. |
-| **NoIntrovert.Ctr.Cli** (`ni3ds`) | Command-line tool built on the library, as a `dotnet tool` or a standalone binary. |
+| **3ds-cia-library** | The library (namespace `ThreeDsCiaLibrary`) |
+| **3ds-cia-library.Cli** | The `3ds` command-line tool, as a `dotnet tool` or a standalone binary |
 
 ## Platforms
 
-The libraries are plain managed code, so the same package works everywhere .NET runs. It targets `net8.0` and `net10.0` and is marked trim- and AOT-compatible.
+The library is plain managed code, so the same package works everywhere .NET runs. It targets `net8.0` and `net10.0` and is marked trim- and AOT-compatible.
 
 | Platform | Status |
 |---|---|
@@ -29,20 +27,20 @@ Any app on .NET 8 or later can use it, including `net8.0-android`, `net9.0-ios` 
 ## Install
 
 ```bash
-dotnet add package NoIntrovert.Ctr
+dotnet add package 3ds-cia-library
 ```
 
 The command-line tool:
 
 ```bash
-dotnet tool install -g NoIntrovert.Ctr.Cli
+dotnet tool install -g 3ds-cia-library.Cli
 ```
 
-Standalone `ni3ds` binaries for Windows, Linux and macOS (no .NET install needed) are attached to each [GitHub release](https://github.com/Nickel42/3ds-cia-library/releases). Until the first release reaches nuget.org, reference the projects in `src/` directly or use the packages from a release.
+Standalone `3ds` binaries for Windows, Linux and macOS (no .NET install needed) are attached to each [GitHub release](https://github.com/Nickel42/3ds-cia-library/releases). Until a release reaches nuget.org, reference `src/3ds-cia-library` directly or use the packages attached to a release.
 
 ## Supported files and operations
 
-| Input | Decrypt | → CCI (.3ds) | → CIA | Trim / untrim | Verify / rename |
+| Input | Decrypt | → CCI (.3ds) | → CIA | Trim / untrim | Check hashes |
 |---|---|---|---|---|---|
 | CCI (.3ds, .cci) | ✓ (stays trimmed/untrimmed) | ✓ decrypt + trim/pad | ✓ | ✓ | ✓ |
 | CIA (.cia) | ✓ (title-key + NCCH layers) | ✓ game titles only | — | — | ✓ (TMD hashes) |
@@ -64,20 +62,19 @@ The library ships no keys. Users supply their own, dumped from their own console
 | `seeddb.bin` | Seeds for seed-encrypted eShop titles | GodMode9 / Azahar |
 | a CIA the user owns (optional) | Certificate chain for CCI → CIA | `CtrKeyStore.LoadCertificateChainFromCia` |
 
-`KeyLocator` looks in the folders you pass first, then in the usual places: Azahar and Citra `sysdata` folders (Windows, macOS, Linux/XDG), `~/.3ds`, `~/3ds`, and `keys/` next to the executable. `boot9.bin` is checked against the SHA-256 of a retail dump, and `KeyStoreStatus.IsRetailReady` says whether typical cartridges and eShop CIAs will work.
+`KeyLocator` looks in the folders you pass first, such as your app's own keys folder. After that it checks the usual places: Azahar and Citra `sysdata` folders (Windows, macOS, Linux/XDG), `~/.3ds`, `~/3ds`, and `keys/` next to the executable. `boot9.bin` is checked against the SHA-256 of a retail dump, and `KeyStoreStatus.IsRetailReady` says whether typical cartridges and eShop CIAs will work.
 
 ## Quick start
 
 These snippets come from [`samples/QuickStart`](https://github.com/Nickel42/3ds-cia-library/tree/main/samples/QuickStart), which CI compiles on every change.
 
 ```csharp
-using NoIntrovert.Core.IO;
-using NoIntrovert.Ctr;
-using NoIntrovert.Ctr.Keys;
-using NoIntrovert.Ctr.Ncch;
-using NoIntrovert.Ctr.Operations;
-using NoIntrovert.Ctr.Verification;
-using NoIntrovert.Dat;
+using ThreeDsCiaLibrary;
+using ThreeDsCiaLibrary.IO;
+using ThreeDsCiaLibrary.Keys;
+using ThreeDsCiaLibrary.Ncch;
+using ThreeDsCiaLibrary.Operations;
+using ThreeDsCiaLibrary.Verification;
 
 // Load keys: the folders you pass are searched first, then Azahar/Citra and ~/.3ds.
 var keys = KeyLocator.LoadDefault(out var errors, extraDirectories: [keysFolder]);
@@ -99,14 +96,9 @@ try
 catch (MissingKeyException ex) { Console.WriteLine($"Missing key: {ex.KeyName}"); } // e.g. "common1", "seed:0004000000123400"
 catch (CtrFormatException ex) { Console.WriteLine(ex.Message); }
 
-// Verify against No-Intro DATs.
-var verifier = new CtrVerifier(keys, DatIndex.FromFiles(datFiles));
-CtrVerifyReport report = await verifier.VerifyAsync(path);
-// report.Verdict: Verified / VerifiedUntrimmed / IntactNotInDat / Unknown / Bad
-
-// Rename: plan first (a dry run), apply after the user confirms.
-var (reports, plan) = await new CtrRenameService(verifier).PlanAsync(files);
-var failures = RenamePlanner.Apply(plan);
+// Check the result's internal hashes.
+CtrVerifyReport report = await new CtrVerifier(keys).VerifyAsync(output);
+// report.Verdict: Intact / Unknown (checks skipped, e.g. missing keys) / Bad
 ```
 
 Other operations: `DecryptAsync`, `TrimAsync`, `UntrimAsync`. All have synchronous versions too.
@@ -114,7 +106,7 @@ Other operations: `DecryptAsync`, `TrimAsync`, `UntrimAsync`. All have synchrono
 ## Using it in an app
 
 - **Threads:** the async methods run on the thread pool. In WPF, WinForms, Avalonia or MAUI, await them from the UI thread and create `Progress<T>` there, so progress reports arrive on the UI thread. Reports come at most every 8 MiB.
-- **Safe output:** every operation writes to `<output>.nointrovert.tmp` and moves it into place only on success. Cancelling or failing leaves no partial file. Existing files are never overwritten unless `Overwrite = true`.
+- **Safe output:** every operation writes to `<output>.3ds-cia-library.tmp` and moves it into place only on success. Cancelling or failing leaves no partial file. Existing files are never overwritten unless `Overwrite = true`.
 - **Memory:** a few MiB, whatever the file size; everything streams.
 - **File pickers:** `CtrFile.Extensions` lists the extensions. `CtrFile.Detect` sniffs the content, so misnamed files still work.
 - **Android and iOS:** the APIs take file paths. Files picked through the Storage Access Framework (Android) or document picker (iOS) arrive as streams or content URIs; copy them into your app's cache folder first. On Android, pass your app's files folder to `KeyLocator.LoadDefault` as the key folder (see [`samples/AndroidSmoke`](https://github.com/Nickel42/3ds-cia-library/tree/main/samples/AndroidSmoke)).
@@ -130,28 +122,29 @@ Pass a folder as the input to `ConvertAsync(..., CtrOutputFormat.Cia)` or `Decry
 - **Title-version mismatch:** a ticket whose title version differs from the TMD's, which is common in CDN downloads, is reported. `MatchTicketVersionToTmd` writes a matching one.
 - **CCI:** CDN folders convert to CIA only. Convert that CIA to CCI afterwards.
 
-## Verification and renaming
+## Checking a file
 
-- **DATs:** No-Intro covers the 3DS (*Nintendo 3DS (Encrypted)*, *(Decrypted)* and the digital DATs); Redump does not.
-- **Trimmed images:** No-Intro hashes cartridges at full card size, so trimmed images are also hashed as if padded with 0xFF. A match then gives `VerifiedUntrimmed`, all in the same single read.
-- **CIA → CCI conversions** can never match a cartridge dump, because the real card header, unique ID and InitialData aren't in a CIA. They show up as `IntactNotInDat`, with internal hashes checked, and are still identified by product code (a `Serial` match) for renaming.
-- **Internal checks:** the TMD SHA-256 of every CIA content, plus the NCCH extended header, logo, ExeFS superblock, every ExeFS file and the RomFS superblock.
-- **Rename templates:** support `{name}` (DAT game name), `{romname}`, `{title}`, `{longtitle}`, `{publisher}`, `{region}`, `{serial}`, `{titleid}` and `{version}`. Empty `()`/`[]` groups are dropped. The defaults are `{name}` when verified and `{title} ({region}) [{serial}]` otherwise.
+`CtrVerifier` hashes a file (CRC32, MD5, SHA-1, SHA-256) and checks the hashes stored inside it:
 
-## Command line (`ni3ds`)
+- **CIA:** the TMD SHA-256 of every content.
+- **NCCH:** the extended header, logo, ExeFS superblock, every ExeFS file and the RomFS superblock.
+
+The verdict is `Intact` when every check passes, `Bad` when any fails, and `Unknown` when the checks could not run (for example, missing keys for an encrypted file). Run it after a conversion to confirm the output is sound.
+
+## Command line (`3ds`)
 
 ```bash
-ni3ds keys
-ni3ds info "Game.3ds"
-ni3ds decrypt "Game.3ds"                      # -> Game.decrypted.3ds
-ni3ds convert "Game.3ds" --to cia
-ni3ds convert "Game.cia" --to cci --no-trim
-ni3ds convert "cdn/0004000000123400" --to cia # CDN folder -> decrypted CIA
-ni3ds verify roms/ --dat "Nintendo - Nintendo 3DS (Encrypted).dat"
-ni3ds rename roms/ --dat "...dat"             # dry run; add --apply
+3ds keys
+3ds info "Game.3ds"
+3ds decrypt "Game.3ds"                      # -> Game.decrypted.3ds
+3ds convert "Game.3ds" --to cia
+3ds convert "Game.cia" --to cci --no-trim
+3ds convert "cdn/0004000000123400" --to cia # CDN folder -> decrypted CIA
+3ds trim "Game.3ds"
+3ds verify "Game.cia"                       # or a folder; add --recursive
 ```
 
-Run `ni3ds --help` for every option (`--keys-dir`, `--boot9`, `--aes-keys`, `--seeddb`, `--certs-from`, `--keep-encryption`, `--match-ticket-version`, …).
+Run `3ds --help` for every option (`--keys-dir`, `--boot9`, `--aes-keys`, `--seeddb`, `--certs-from`, `--keep-encryption`, `--match-ticket-version`, …).
 
 ## Building from source
 

@@ -28,8 +28,8 @@ dotnet build samples/AndroidSmoke -c Release
 1. Update `CHANGELOG.md` and `VersionPrefix` in `Directory.Build.props`.
 2. Tag the commit and push the tag:
    ```bash
-   git tag v0.10.0
-   git push origin v0.10.0
+   git tag v0.11.0
+   git push origin v0.11.0
    ```
-3. The **Release** workflow tests and packs everything with that version, builds the standalone `ni3ds` binaries, and creates a GitHub release with all of them attached.
-4. If the repository has a `NUGET_API_KEY` secret (an API key from nuget.org scoped to the `NoIntrovert.*` packages), the workflow also pushes the packages to nuget.org.
+3. The **Release** workflow tests and packs everything with that version, builds the standalone `3ds` binaries, and creates a GitHub release with all of them attached.
+4. If the repository has a `NUGET_API_KEY` secret (an API key from nuget.org scoped to the `3ds-cia-library*` packages), the workflow also pushes the packages to nuget.org.

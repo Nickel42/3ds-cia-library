@@ -101,7 +101,7 @@ def build_ncch_plain(*, title_id: int, product: str, executable: bool, version: 
         put(plain)
         # exefs
         files = [('.code', rbytes(code_size)), ('banner', rbytes(0x400)),
-                 ('icon', icon if icon is not None else smdh('Test', 'Test', 'NoIntrovert'))]
+                 ('icon', icon if icon is not None else smdh('Test', 'Test', 'Example'))]
         exhdr = bytearray(0x200)
         data = bytearray()
         for i, (name, content) in enumerate(files):
@@ -207,7 +207,7 @@ def main(outdir: str):
     # --- Game A: retail cart (CCI), CXI uses 7.x crypto (slot 0x25), manual uses v1 counters
     tid_a = 0x0004000000ABCD00
     cxi_a_plain = build_ncch_plain(title_id=tid_a, product='CTR-P-ATGE', executable=True,
-                                   icon=smdh('Test Game', 'Test Game: Long Title', 'NoIntrovert Labs'),
+                                   icon=smdh('Test Game', 'Test Game: Long Title', 'Example Labs'),
                                    save_size=0x80000)
     cfa_a_plain = build_ncch_plain(title_id=tid_a | 0x0000000000000000, product='CTR-P-ATGE', executable=False,
                                    version=1, content_type=2, romfs_size=0x2000)
@@ -224,7 +224,7 @@ def main(outdir: str):
     seed_b = rbytes(16)
     ks.seeds[tid_b] = seed_b
     cxi_b_plain = build_ncch_plain(title_id=tid_b, product='CTR-N-BSDJ', executable=True, sd_flag=True,
-                                   icon=smdh('Seed Game', 'Seed Game Long', 'NoIntrovert Labs'),
+                                   icon=smdh('Seed Game', 'Seed Game Long', 'Example Labs'),
                                    save_size=0x200000, seed=seed_b, code_size=0x2001)
     cfa_b_plain = build_ncch_plain(title_id=tid_b, product='CTR-N-BSDJ', executable=False, content_type=2,
                                    romfs_size=0x1800)
@@ -323,60 +323,19 @@ def main(outdir: str):
     # identification facts the C# tests also assert
     results['_facts'] = {
         'game_a_title_id': f'{tid_a:016X}', 'game_a_product': 'CTR-P-ATGE',
-        'game_a_title': 'Test Game', 'game_a_publisher': 'NoIntrovert Labs',
+        'game_a_title': 'Test Game', 'game_a_publisher': 'Example Labs',
         'game_b_title_id': f'{tid_b:016X}', 'game_b_product': 'CTR-N-BSDJ',
         'game_a_media_size': R.Ncsd(cci_a).media_size, 'game_a_used_size': R.Ncsd(cci_a).used_size,
         'scrambler_x': bytes(range(16)).hex(), 'scrambler_y': bytes(range(16, 32)).hex(),
         'scrambler_normal': R.keygen(bytes(range(16)), bytes(range(16, 32))).hex(),
     }
 
-    # ------------------------------------------------------- DAT files ---
-    ua = a_untrim_hashes
-    ub = R.all_hashes(cia_b)
-    dat_xml = f'''<?xml version="1.0"?>
-<!DOCTYPE datafile PUBLIC "-//Logiqx//DTD ROM Management Datafile//EN" "http://www.logiqx.com/dtds/datafile.dtd">
-<datafile>
-\t<header>
-\t\t<name>Nintendo - Nintendo 3DS (Encrypted) [FAKE TEST DAT]</name>
-\t\t<description>Synthetic test DAT</description>
-\t\t<version>20261030-000000</version>
-\t</header>
-\t<game name="Test Game (USA)" id="0001">
-\t\t<description>Test Game (USA)</description>
-\t\t<rom name="Test Game (USA).3ds" size="{ua['size']}" crc="{ua['crc32'].upper()}" md5="{ua['md5']}" sha1="{ua['sha1']}" sha256="{ua['sha256']}" serial="CTR-P-ATGE" status="verified"/>
-\t</game>
-\t<game name="Seed Game (Japan) (eShop)" id="0002">
-\t\t<description>Seed Game (Japan) (eShop)</description>
-\t\t<rom name="Seed Game (Japan) (eShop).cia" size="{ub['size']}" crc="{ub['crc32']}" sha1="{ub['sha1']}"/>
-\t</game>
-\t<game name="Unrelated &amp; Other (Europe)">
-\t\t<description>Unrelated</description>
-\t\t<rom name="Unrelated &amp; Other (Europe).3ds" size="134217728" crc="00000000" sha1="0000000000000000000000000000000000000000" serial="CTR-P-ZZZP"/>
-\t</game>
-</datafile>
-'''
-    da = R.all_hashes(R.cci_untrim(a_dec))
-    dat_cmp = f'''clrmamepro (
-\tname "Nintendo - Nintendo 3DS (Decrypted) [FAKE TEST DAT]"
-\tdescription "Synthetic test DAT"
-\tversion 20261030
-)
-
-game (
-\tname "Test Game (USA)"
-\tdescription "Test Game (USA)"
-\trom ( name "Test Game (USA).3ds" size {da['size']} crc {da['crc32'].upper()} md5 {da['md5'].upper()} sha1 {da['sha1'].upper()} serial "CTR-P-ATGE" )
-)
-'''
-    files['dats/fake_3ds_encrypted.dat'] = dat_xml.encode()
-    files['dats/fake_3ds_decrypted.dat'] = dat_cmp.encode()
-
     for rel, data in files.items():
         p = os.path.join(outdir, rel)
         os.makedirs(os.path.dirname(p), exist_ok=True)
         with open(p, 'wb') as f:
             f.write(data)
-    with open(os.path.join(outdir, 'expected.json'), 'w') as f:
+    with open(os.path.join(outdir, 'expected.json'), 'w', newline='\n') as f:
         json.dump(results, f, indent=2, sort_keys=True)
     print(f'wrote {len(files)} files to {outdir}')
     for k, v in sorted(results.items()):

@@ -2,6 +2,6 @@ bin/
 obj/
 *.user
 .vs/
-*.nointrovert.tmp
+*.3ds-cia-library.tmp
 reference/python/__pycache__/
 artifacts/
