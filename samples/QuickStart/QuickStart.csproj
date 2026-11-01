@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- In your own project: <PackageReference Include="NoIntrovert.Ctr" Version="0.10.0" /> -->
+    <ProjectReference Include="..\..\src\NoIntrovert.Ctr\NoIntrovert.Ctr.csproj" />
+  </ItemGroup>
+</Project>

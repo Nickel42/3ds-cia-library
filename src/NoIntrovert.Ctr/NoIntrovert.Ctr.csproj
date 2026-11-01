@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>NoIntrovert.Ctr</RootNamespace>
-    <Description>Nintendo 3DS (CTR) ROM decryption, CIA/CCI conversion, trimming, verification and renaming.</Description>
+    <Description>Nintendo 3DS (CTR) file library: decrypt CCI (.3ds), CIA, CXI and CFA; convert CCI ↔ CIA; build CIAs from CDN downloads; trim and untrim; inspect titles; verify against No-Intro DATs and rename. Pure managed, no dependencies; bring your own keys.</Description>
+    <PackageTags>3ds;nintendo-3ds;ctr;cia;cci;ncch;ncsd;cdn;rom;decrypt;no-intro</PackageTags>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NoIntrovert.Core\NoIntrovert.Core.csproj" />

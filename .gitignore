@@ -4,3 +4,4 @@ obj/
 .vs/
 *.nointrovert.tmp
 reference/python/__pycache__/
+artifacts/

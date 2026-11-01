@@ -82,6 +82,14 @@ When NCCH encryption is kept, the change is applied by XOR-ing the plaintext del
 - **Contents:** each is CBC-decrypted, and its NCCH is decrypted as well.
 - **TMD:** the chunk type loses bit 0x1, the chunk hash becomes the SHA-256 of the new content, and every content info record hash plus the header hash are recomputed. The signature is now invalid, so the CIA is fakesigned.
 
+## CDN → CIA
+
+- **Input:** a folder with the TMD (`tmd`, `title.tmd`, or the highest `tmd.<version>`), the ticket (`cetk`, `title.tik`, or any `*.tik`) and one file per content named by its content ID in lowercase hex, optionally with `.app`. Names are matched case-insensitively.
+- **Trimming the TMD and ticket:** the TMD is cut at signature + 0xC4 header + 0x900 info records + 0x30 per content; the ticket at signature + 0x164 + the content index size stored at index offset 4. Whatever follows is read as certificates.
+- **Certificates:** each is a signature block, a 0x88-byte header (issuer, key type, name) and a public key (RSA-4096 0x238, RSA-2048 0x138, ECC 0x78 bytes). The CIA chain is `CA00000003` + `XS0000000c` + `CP0000000b` (0xA00 bytes). If any is missing, the chain falls back to `CertificateChain` from the options, then the key store, then zeros.
+- **Layout:** archive header (meta size 0, content index bitmap from the contents present), then chain, ticket and TMD, each padded to 64 bytes, then the content files back to back in TMD order. There is no meta section, which matches CIAs made by make_cdn_cia. That stream then goes through the normal CIA path: decrypted (see above) or copied unchanged.
+- **Checks:** every content is CBC-decrypted with the title key (IV = content index) and its SHA-256 compared with the TMD before anything is written. Contents missing from the folder are an error, except for DLC (title ID high 0x0004008C). A ticket/TMD title version mismatch is reported; `MatchTicketVersionToTmd` writes the TMD's version into the ticket at body offset 0xA6, which invalidates its signature as any edited ticket would.
+
 ## Trim / untrim
 
 Trim keeps bytes [0, end of last partition). Untrim appends 0xFF up to the media size in NCSD 0x104.
@@ -103,7 +111,9 @@ Trim keeps bytes [0, end of last partition). Untrim appends 0xFF up to the media
 
 With `Decrypt = true`, a missing key throws `MissingKeyException`; the C# code never writes partially decrypted output. The Python reference instead passes such contents through still encrypted, but no test covers that path. With `Decrypt = false`, a missing NCCH key only produces a warning, and the content is copied unchanged without the SD-flag or meta update.
 
-## Known limitations (intentional for this RC)
+## Known limitations
+
+- **Paths, not streams:** the public API takes file paths. Apps that receive streams or content URIs (Android's Storage Access Framework, iOS document pickers) copy the file into their own storage first.
 
 - **No re-encryption:** decrypted → encrypted conversion is not supported. The original flags are lost on decryption, and nothing downstream needs it.
 - **No Z3DS:** Azahar's compressed formats (.zcci/.zcia/.zcxi) are not supported yet.

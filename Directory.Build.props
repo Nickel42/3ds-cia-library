@@ -1,13 +1,35 @@
 <Project>
+  <!-- Settings shared by every project. Libraries add packaging settings in src/Directory.Build.props. -->
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
     <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <Version>0.9.0-rc1</Version>
-    <Authors>NoIntrovert</Authors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <!-- Versioning: release builds pass -p:Version=x.y.z from the git tag. -->
+    <VersionPrefix>0.10.0</VersionPrefix>
+
+    <!-- Package metadata -->
+    <Authors>Nickel42</Authors>
+    <Copyright>Copyright (c) 2026 Nickel42</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Nickel42/3ds-cia-library</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Nickel42/3ds-cia-library.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- Only the libraries (src/) and the CLI tool opt in to packing. -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
 </Project>

@@ -1,16 +1,46 @@
-# NoIntrovert.Formats — 3DS module (release candidate 0.9.0-rc1)
+# 3ds-cia-library
 
-Pure C# (.NET 8, no NuGet dependencies) libraries for NoIntrovert:
+Pure C# libraries for working with Nintendo 3DS files in any .NET app: decrypt, convert between CCI (`.3ds`) and CIA, build CIAs from CDN downloads, trim and untrim, inspect titles, and verify and rename against No-Intro DATs. No native code, no dependencies, no keys bundled.
 
-| Project | What it does |
+[![CI](https://github.com/Nickel42/3ds-cia-library/actions/workflows/ci.yml/badge.svg)](https://github.com/Nickel42/3ds-cia-library/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Nickel42/3ds-cia-library/blob/main/LICENSE)
+
+| Package | What it does |
 |---|---|
-| `NoIntrovert.Core` | Streaming primitives: windowed/concatenated/overlay streams, random-access AES-CTR and AES-CBC, CRC32 + MD5/SHA-1/SHA-256 in one pass, atomic output files, progress. Reusable by the Switch and Xbox modules. |
-| `NoIntrovert.Dat` | Console-agnostic DAT support: Logiqx XML and ClrMamePro parsing (No-Intro, Redump), hash/serial index, file-name templates, rename plans. |
-| `NoIntrovert.Ctr` | Nintendo 3DS: key loading, decryption, CCI ↔ CIA conversion, trim/untrim, inspection, verification, renaming. |
-| `ni3ds` (tools/) | Command-line harness so you can test everything without touching the UI. |
-| Tests (tests/) | xUnit tests against synthetic fixtures whose expected outputs come from the Python reference implementation in `reference/python`. |
+| **NoIntrovert.Ctr** | The 3DS library: keys, decryption, CCI ↔ CIA, CDN → CIA, trim/untrim, inspection, verification, renaming. Depends on the two below. |
+| **NoIntrovert.Dat** | Console-agnostic DAT support: Logiqx XML and ClrMamePro parsing (No-Intro, Redump), lookup by hash or serial, file-name templates and collision-safe rename plans. |
+| **NoIntrovert.Core** | Streaming building blocks: windowed, concatenated and overlay streams, random-access AES-CTR/CBC, CRC32 + MD5 + SHA-1 + SHA-256 in one pass, atomic output files, throttled progress. |
+| **NoIntrovert.Ctr.Cli** (`ni3ds`) | Command-line tool built on the library, as a `dotnet tool` or a standalone binary. |
 
-## Supported operations
+## Platforms
+
+The libraries are plain managed code, so the same package works everywhere .NET runs. It targets `net8.0` and `net10.0` and is marked trim- and AOT-compatible.
+
+| Platform | Status |
+|---|---|
+| Windows (x64, Arm64) | Tested in CI on every change |
+| Linux (x64, Arm64) | Tested in CI on every change |
+| macOS (Apple silicon, Intel) | Tested in CI on every change |
+| Android | An Android app using the library is built (trimmed) in CI on every change |
+| iOS, Mac Catalyst, Native AOT | Expected to work (trim/AOT analyzers report no warnings); not tested in CI |
+
+Any app on .NET 8 or later can use it, including `net8.0-android`, `net9.0-ios` and so on. .NET Framework and .NET Standard are not supported.
+
+## Install
+
+```bash
+dotnet add package NoIntrovert.Ctr
+```
+
+The command-line tool:
+
+```bash
+dotnet tool install -g NoIntrovert.Ctr.Cli
+```
+
+Standalone `ni3ds` binaries for Windows, Linux and macOS (no .NET install needed) are attached to each [GitHub release](https://github.com/Nickel42/3ds-cia-library/releases). Until the first release reaches nuget.org, reference the projects in `src/` directly or use the packages from a release.
+
+## Supported files and operations
 
 | Input | Decrypt | → CCI (.3ds) | → CIA | Trim / untrim | Verify / rename |
 |---|---|---|---|---|---|
@@ -19,113 +49,126 @@ Pure C# (.NET 8, no NuGet dependencies) libraries for NoIntrovert:
 | CXI / CFA | ✓ | — | — | — | ✓ |
 | CDN folder (`tmd`, `cetk`, content files) | ✓ (→ decrypted CIA) | via the CIA | ✓ | — | contents checked against the TMD |
 
-**CDN folders.** Pass the folder as the input. Raw CDN names (`tmd`, `cetk`, `00000000`) and NUSspli-style names (`title.tmd`, `title.tik`, `title.cert`, `00000000.app`) are both recognized; with several `tmd.<version>` files the highest is used. The certificates Nintendo appends to the TMD and ticket become the CIA's certificate chain. Every content is checked against its TMD SHA-256 before anything is written (`VerifyContents`). DLC folders may hold only some contents; other titles must be complete. A ticket whose title version differs from the TMD's (common in CDN downloads) is reported, and `MatchTicketVersionToTmd` writes a matching one. CDN folders convert to CIA only; convert that CIA to CCI afterwards.
+Encryption: original (0x2C), 7.x (0x25), New 3DS 9.3 (0x18) and 9.6 (0x1B), seed crypto (seeddb), fixed zero key and fixed system key, and CIA title keys (common keys 0–5).
 
-Encryption types: original (0x2C), 7.x (0x25), New 3DS 9.3 (0x18) and 9.6 (0x1B), seed crypto (seeddb), fixed zero key and fixed system key, CIA title-key (common keys 0–5).
+Conversions decrypt by default, which is what emulators such as Azahar and custom firmware expect. `Decrypt = false` keeps the encryption and only changes the container.
 
-Conversions decrypt by default (what Azahar and CFW want). `Decrypt = false` keeps NCCH encryption and only changes the container.
+## Keys
 
-## Keys (nothing is bundled)
+The library ships no keys. Users supply their own, dumped from their own console:
 
-NoIntrovert ships no key material. Users provide their own files, which `KeyLocator` finds automatically:
-
-| File | Provides | Where to get it |
+| File | Provides | Where it comes from |
 |---|---|---|
-| `boot9.bin` (or `boot9_prot.bin`) | KeyX 0x2C, KeyX 0x3D | Dumped from the user's own console with GodMode9 |
-| `aes_keys.txt` | KeyX 0x25/0x18/0x1B, `common0`–`common5`, optional `fixedSystemKey` | The same file Azahar/Citra use |
+| `boot9.bin` (or `boot9_prot.bin`) | KeyX 0x2C and 0x3D | Dumped with GodMode9 |
+| `aes_keys.txt` | KeyX 0x25/0x18/0x1B, `common0`–`common5`, optional `fixedSystemKey` | The file Azahar/Citra use |
 | `seeddb.bin` | Seeds for seed-encrypted eShop titles | GodMode9 / Azahar |
-| a CIA the user owns (optional) | CIA certificate chain for CCI→CIA | `CtrKeyStore.LoadCertificateChainFromCia` |
+| a CIA the user owns (optional) | Certificate chain for CCI → CIA | `CtrKeyStore.LoadCertificateChainFromCia` |
 
-Search order: explicit folders → `%APPDATA%/NoIntrovert/keys` → Azahar and Citra `sysdata` folders (Windows, macOS, Linux/XDG) → `~/.3ds`, `~/3ds` → `keys/` next to the executable. `aes_keys.txt` can also carry `slot0x2CKeyX`/`slot0x3DKeyX` if the user has no boot9.
+`KeyLocator` looks in the folders you pass first, then in the usual places: Azahar and Citra `sysdata` folders (Windows, macOS, Linux/XDG), `~/.3ds`, `~/3ds`, and `keys/` next to the executable. `boot9.bin` is checked against the SHA-256 of a retail dump, and `KeyStoreStatus.IsRetailReady` says whether typical cartridges and eShop CIAs will work.
 
-`boot9.bin` is checked against the SHA-256 of a retail dump. `KeyStoreStatus.IsRetailReady` tells the UI whether typical carts and eShop CIAs will work.
+## Quick start
 
-## Using it from NoIntrovert
-
-Reference `src/NoIntrovert.Ctr` (it pulls in Core and Dat), or copy the three projects into your solution.
+These snippets come from [`samples/QuickStart`](https://github.com/Nickel42/3ds-cia-library/tree/main/samples/QuickStart), which CI compiles on every change.
 
 ```csharp
 using NoIntrovert.Core.IO;
 using NoIntrovert.Ctr;
 using NoIntrovert.Ctr.Keys;
+using NoIntrovert.Ctr.Ncch;
 using NoIntrovert.Ctr.Operations;
 using NoIntrovert.Ctr.Verification;
 using NoIntrovert.Dat;
 
-// once at startup (and again if the user picks a key folder in settings)
-var keys = KeyLocator.LoadDefault(out var keyErrors, extraDirectories: settings.KeyFolders);
-KeyStoreStatus status = keys.GetStatus();          // show in a settings page
+// Load keys: the folders you pass are searched first, then Azahar/Citra and ~/.3ds.
+var keys = KeyLocator.LoadDefault(out var errors, extraDirectories: [keysFolder]);
+Console.WriteLine($"Retail ready: {keys.GetStatus().IsRetailReady}");
 
-// convert / decrypt — safe to await on the UI thread; work runs on the thread pool
+// Inspect (reads headers only).
+CtrFileInfo info = CtrInspector.Inspect(path, keys);
+Console.WriteLine($"{info.Titles?.ShortTitle} [{info.ProductCode}] {info.Region}");
+
+// Convert: a .3ds, a .cia or a CDN folder → a decrypted CIA (CtrOutputFormat.Cci for a .3ds).
 var converter = new CtrConverter(keys);
-var progress = new Progress<OperationProgress>(p => { Progress = p.Fraction; Status = p.Stage; });
+var progress = new Progress<OperationProgress>(p => Console.Write($"\r{p.Stage}: {p.Fraction:P0}"));
 try
 {
-    CtrOperationResult r = await converter.ConvertAsync(inputPath, outputPath, CtrOutputFormat.Cia,
-        new CtrConvertOptions { Decrypt = true }, progress, cancellationToken);
-    foreach (var w in r.Warnings) Log(w);
+    CtrOperationResult result = await converter.ConvertAsync(input, output, CtrOutputFormat.Cia,
+        new CtrConvertOptions(), progress, cancellationToken);
+    foreach (var warning in result.Warnings) Console.WriteLine(warning);
 }
-catch (MissingKeyException ex) { ShowKeyHelp(ex.KeyName); }   // e.g. "common1", "seed:0004000000123400"
-catch (CtrFormatException ex) { ShowError(ex.Message); }
+catch (MissingKeyException ex) { Console.WriteLine($"Missing key: {ex.KeyName}"); } // e.g. "common1", "seed:0004000000123400"
+catch (CtrFormatException ex) { Console.WriteLine(ex.Message); }
 
-// metadata for a file list / details pane (fast, no full read)
-CtrFileInfo info = CtrInspector.Inspect(path, keys);   // title, title ID, product code, region, trimmed?, encryption
-
-// verification + renaming against No-Intro DATs the user imported
-var dats = DatIndex.FromFiles(settings.DatFiles);
-var verifier = new CtrVerifier(keys, dats);
-CtrVerifyReport report = await verifier.VerifyAsync(path, progress: progress, ct: cancellationToken);
+// Verify against No-Intro DATs.
+var verifier = new CtrVerifier(keys, DatIndex.FromFiles(datFiles));
+CtrVerifyReport report = await verifier.VerifyAsync(path);
 // report.Verdict: Verified / VerifiedUntrimmed / IntactNotInDat / Unknown / Bad
 
-var renamer = new CtrRenameService(verifier);
-var (reports, plan) = await renamer.PlanAsync(files, new RenameOptions());   // dry run: show plan in a grid
-var failures = RenamePlanner.Apply(plan);                                     // after the user confirms
+// Rename: plan first (a dry run), apply after the user confirms.
+var (reports, plan) = await new CtrRenameService(verifier).PlanAsync(files);
+var failures = RenamePlanner.Apply(plan);
 ```
 
-Notes for the UI:
-- Every operation writes to `output.nointrovert.tmp` and moves it into place only on success. Cancelling or failing leaves no partial file. Existing outputs are never overwritten unless `Overwrite = true`.
-- Memory use is a few MiB regardless of file size.
-- `Progress<T>` marshals to the UI thread. The library reports at most every 8 MiB.
-- `CtrFile.Extensions` lists the extensions for file pickers. `CtrFile.Detect` sniffs content, so wrongly named files still work.
+Other operations: `DecryptAsync`, `TrimAsync`, `UntrimAsync`. All have synchronous versions too.
+
+## Using it in an app
+
+- **Threads:** the async methods run on the thread pool. In WPF, WinForms, Avalonia or MAUI, await them from the UI thread and create `Progress<T>` there, so progress reports arrive on the UI thread. Reports come at most every 8 MiB.
+- **Safe output:** every operation writes to `<output>.nointrovert.tmp` and moves it into place only on success. Cancelling or failing leaves no partial file. Existing files are never overwritten unless `Overwrite = true`.
+- **Memory:** a few MiB, whatever the file size; everything streams.
+- **File pickers:** `CtrFile.Extensions` lists the extensions. `CtrFile.Detect` sniffs the content, so misnamed files still work.
+- **Android and iOS:** the APIs take file paths. Files picked through the Storage Access Framework (Android) or document picker (iOS) arrive as streams or content URIs; copy them into your app's cache folder first. On Android, pass your app's files folder to `KeyLocator.LoadDefault` as the key folder (see [`samples/AndroidSmoke`](https://github.com/Nickel42/3ds-cia-library/tree/main/samples/AndroidSmoke)).
+
+## CDN folders
+
+Pass a folder as the input to `ConvertAsync(..., CtrOutputFormat.Cia)` or `DecryptAsync`:
+
+- **Names:** raw CDN names (`tmd`, `cetk`, `00000000`) and NUSspli-style names (`title.tmd`, `title.tik`, `title.cert`, `00000000.app`) both work. With several `tmd.<version>` files, the highest is used.
+- **Certificates:** the ones Nintendo appends to the TMD and ticket become the CIA's certificate chain.
+- **Verification:** every content is checked against its TMD SHA-256 before anything is written (`VerifyContents`).
+- **DLC:** a DLC folder may hold only some of its contents. Other titles must be complete.
+- **Title-version mismatch:** a ticket whose title version differs from the TMD's, which is common in CDN downloads, is reported. `MatchTicketVersionToTmd` writes a matching one.
+- **CCI:** CDN folders convert to CIA only. Convert that CIA to CCI afterwards.
 
 ## Verification and renaming
 
-- **Redump does not cover 3DS.** Use No-Intro's *Nintendo 3DS (Encrypted)*, *(Decrypted)* and digital DATs. The DAT layer itself is generic, so your Xbox (Redump) and Switch modules can share it.
-- No-Intro hashes cartridges at full card size. Trimmed images are therefore also hashed as if padded with 0xFF (`VerifiedUntrimmed`) in the same single read.
-- CIA→CCI conversions can never match a cart dump: the real card header, unique ID and InitialData are not in a CIA. They show up as `IntactNotInDat`, with internal hashes checked, and are still identified by product code (a `Serial` match) for renaming.
-- Internal checks: the TMD SHA-256 of every CIA content, plus the NCCH extended header, logo, ExeFS superblock, every ExeFS file and the RomFS superblock.
-- Rename templates support `{name}` (DAT game name), `{romname}`, `{title}`, `{longtitle}`, `{publisher}`, `{region}`, `{serial}`, `{titleid}`, `{version}`. Empty `()`/`[]` groups are dropped. Defaults: `{name}` when verified, `{title} ({region}) [{serial}]` otherwise.
+- **DATs:** No-Intro covers the 3DS (*Nintendo 3DS (Encrypted)*, *(Decrypted)* and the digital DATs); Redump does not.
+- **Trimmed images:** No-Intro hashes cartridges at full card size, so trimmed images are also hashed as if padded with 0xFF. A match then gives `VerifiedUntrimmed`, all in the same single read.
+- **CIA → CCI conversions** can never match a cartridge dump, because the real card header, unique ID and InitialData aren't in a CIA. They show up as `IntactNotInDat`, with internal hashes checked, and are still identified by product code (a `Serial` match) for renaming.
+- **Internal checks:** the TMD SHA-256 of every CIA content, plus the NCCH extended header, logo, ExeFS superblock, every ExeFS file and the RomFS superblock.
+- **Rename templates:** support `{name}` (DAT game name), `{romname}`, `{title}`, `{longtitle}`, `{publisher}`, `{region}`, `{serial}`, `{titleid}` and `{version}`. Empty `()`/`[]` groups are dropped. The defaults are `{name}` when verified and `{title} ({region}) [{serial}]` otherwise.
 
-## CLI harness
+## Command line (`ni3ds`)
 
+```bash
+ni3ds keys
+ni3ds info "Game.3ds"
+ni3ds decrypt "Game.3ds"                      # -> Game.decrypted.3ds
+ni3ds convert "Game.3ds" --to cia
+ni3ds convert "Game.cia" --to cci --no-trim
+ni3ds convert "cdn/0004000000123400" --to cia # CDN folder -> decrypted CIA
+ni3ds verify roms/ --dat "Nintendo - Nintendo 3DS (Encrypted).dat"
+ni3ds rename roms/ --dat "...dat"             # dry run; add --apply
 ```
-dotnet run --project tools/NoIntrovert.Ctr.Cli -- keys
-dotnet run --project tools/NoIntrovert.Ctr.Cli -- info  "Game.3ds"
-dotnet run --project tools/NoIntrovert.Ctr.Cli -- decrypt "Game.3ds"                 # -> Game.decrypted.3ds
-dotnet run --project tools/NoIntrovert.Ctr.Cli -- convert "Game.3ds" --to cia
-dotnet run --project tools/NoIntrovert.Ctr.Cli -- convert "Game.cia" --to cci --no-trim
-dotnet run --project tools/NoIntrovert.Ctr.Cli -- convert "cdn/0004000000123400" --to cia   # CDN folder -> decrypted CIA
-dotnet run --project tools/NoIntrovert.Ctr.Cli -- convert "cdn/0004000000123400" --to cia --keep-encryption --match-ticket-version
-dotnet run --project tools/NoIntrovert.Ctr.Cli -- verify  roms/ --dat "Nintendo - Nintendo 3DS (Encrypted).dat"
-dotnet run --project tools/NoIntrovert.Ctr.Cli -- rename  roms/ --dat "...dat"        # dry run; add --apply
-```
 
-Run `ni3ds --help` for all options (`--keys-dir`, `--boot9`, `--aes-keys`, `--seeddb`, `--certs-from`, `--keep-encryption`, …).
+Run `ni3ds --help` for every option (`--keys-dir`, `--boot9`, `--aes-keys`, `--seeddb`, `--certs-from`, `--keep-encryption`, `--match-ticket-version`, …).
 
-## Build and test
+## Building from source
 
-```
+Needs the .NET 10 SDK (the tests also run on .NET 8 if it is installed).
+
+```bash
 dotnet build
 dotnet test
+dotnet pack -c Release -o artifacts
 ```
 
-The tests use fake keys and synthetic ROMs, so they run anywhere. See [docs/TESTING.md](docs/TESTING.md) for the real-file checklist and [docs/SPEC.md](docs/SPEC.md) for the exact byte layouts and design decisions.
+The tests use fake keys and synthetic files, so they run anywhere. See [docs/TESTING.md](https://github.com/Nickel42/3ds-cia-library/blob/main/docs/TESTING.md) for testing with real files and [docs/SPEC.md](https://github.com/Nickel42/3ds-cia-library/blob/main/docs/SPEC.md) for byte layouts, design decisions and known limitations. Releases are described in [CONTRIBUTING.md](https://github.com/Nickel42/3ds-cia-library/blob/main/CONTRIBUTING.md).
 
-## Status of this release candidate
+## Legal
 
-This code was written and checked without access to a .NET SDK or to real 3DS files:
-- The crypto and format logic was implemented twice: in C#, and as the Python reference, which was run and self-checked here. The xUnit tests assert that the C# output is byte-identical to the Python output.
-- The C# was desk-checked but **not compiled**. Expect a handful of compile fixes on the first build.
-- Behaviour on real dumps is unverified. Please run the checklist in docs/TESTING.md.
+This library is for working with files you dumped from hardware and software you own. It contains no Nintendo keys, certificates or other copyrighted Nintendo material; the test fixtures use randomly generated fake keys. Format details come from public documentation and other open-source projects; see [THIRD_PARTY_NOTICES.md](https://github.com/Nickel42/3ds-cia-library/blob/main/THIRD_PARTY_NOTICES.md). "Nintendo 3DS" is a trademark of Nintendo; this project is not affiliated with or endorsed by Nintendo.
 
-See docs/SPEC.md → "Known limitations" for what is intentionally out of scope (re-encryption, Z3DS compressed formats, DSiWare SRL internals, full RomFS IVFC verification).
+## License
+
+[MIT](https://github.com/Nickel42/3ds-cia-library/blob/main/LICENSE) © 2026 Nickel42

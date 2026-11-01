@@ -11,7 +11,7 @@ namespace NoIntrovert.Ctr.Cli;
 internal static class Program
 {
     private const string Usage = """
-        ni3ds - NoIntrovert 3DS tool (test harness for NoIntrovert.Ctr)
+        ni3ds - Nintendo 3DS file tool (built on NoIntrovert.Ctr)
 
         Usage: ni3ds [options] <command> [arguments]
 
