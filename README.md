@@ -1,14 +1,14 @@
-# 3ds-cia-library
+# lib-3ds-kit
 
 A pure C# library for converting and decrypting Nintendo 3DS files in any .NET app: decrypt CCI (`.3ds`), CIA, CXI and CFA files, convert between CCI and CIA, build CIAs from CDN downloads, and trim or untrim cartridge images. It can also read a file's title and encryption details, and check the hashes stored inside it to confirm a result came out intact. No native code, no dependencies, no keys bundled.
 
-[![CI](https://github.com/Nickel42/3ds-cia-library/actions/workflows/ci.yml/badge.svg)](https://github.com/Nickel42/3ds-cia-library/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Nickel42/3ds-cia-library/blob/main/LICENSE)
+[![CI](https://github.com/Nickel42/lib-3ds-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/Nickel42/lib-3ds-kit/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Nickel42/lib-3ds-kit/blob/main/LICENSE)
 
 | Package | What it is |
 |---|---|
-| **3ds-cia-library** | The library (namespace `ThreeDsCiaLibrary`) |
-| **3ds-cia-library.Cli** | The `3ds` command-line tool, as a `dotnet tool` or a standalone binary |
+| **lib-3ds-kit** | The library (namespace `Lib3dsKit`) |
+| **lib-3ds-kit.Cli** | The `3ds-kit` command-line tool, as a `dotnet tool` or a standalone binary |
 
 ## Platforms
 
@@ -27,16 +27,16 @@ Any app on .NET 8 or later can use it, including `net8.0-android`, `net9.0-ios` 
 ## Install
 
 ```bash
-dotnet add package 3ds-cia-library
+dotnet add package lib-3ds-kit
 ```
 
 The command-line tool:
 
 ```bash
-dotnet tool install -g 3ds-cia-library.Cli
+dotnet tool install -g lib-3ds-kit.Cli
 ```
 
-Standalone `3ds` binaries for Windows, Linux and macOS (no .NET install needed) are attached to each [GitHub release](https://github.com/Nickel42/3ds-cia-library/releases). Until a release reaches nuget.org, reference `src/3ds-cia-library` directly or use the packages attached to a release.
+Standalone `3ds-kit` binaries for Windows, Linux and macOS (no .NET install needed) are attached to each [GitHub release](https://github.com/Nickel42/lib-3ds-kit/releases). Until a release reaches nuget.org, reference `src/lib-3ds-kit` directly or use the packages attached to a release.
 
 ## Supported files and operations
 
@@ -66,15 +66,15 @@ The library ships no keys. Users supply their own, dumped from their own console
 
 ## Quick start
 
-These snippets come from [`samples/QuickStart`](https://github.com/Nickel42/3ds-cia-library/tree/main/samples/QuickStart), which CI compiles on every change.
+These snippets come from [`samples/QuickStart`](https://github.com/Nickel42/lib-3ds-kit/tree/main/samples/QuickStart), which CI compiles on every change.
 
 ```csharp
-using ThreeDsCiaLibrary;
-using ThreeDsCiaLibrary.IO;
-using ThreeDsCiaLibrary.Keys;
-using ThreeDsCiaLibrary.Ncch;
-using ThreeDsCiaLibrary.Operations;
-using ThreeDsCiaLibrary.Verification;
+using Lib3dsKit;
+using Lib3dsKit.IO;
+using Lib3dsKit.Keys;
+using Lib3dsKit.Ncch;
+using Lib3dsKit.Operations;
+using Lib3dsKit.Verification;
 
 // Load keys: the folders you pass are searched first, then Azahar/Citra and ~/.3ds.
 var keys = KeyLocator.LoadDefault(out var errors, extraDirectories: [keysFolder]);
@@ -106,10 +106,10 @@ Other operations: `DecryptAsync`, `TrimAsync`, `UntrimAsync`. All have synchrono
 ## Using it in an app
 
 - **Threads:** the async methods run on the thread pool. In WPF, WinForms, Avalonia or MAUI, await them from the UI thread and create `Progress<T>` there, so progress reports arrive on the UI thread. Reports come at most every 8 MiB.
-- **Safe output:** every operation writes to `<output>.3ds-cia-library.tmp` and moves it into place only on success. Cancelling or failing leaves no partial file. Existing files are never overwritten unless `Overwrite = true`.
+- **Safe output:** every operation writes to `<output>.lib-3ds-kit.tmp` and moves it into place only on success. Cancelling or failing leaves no partial file. Existing files are never overwritten unless `Overwrite = true`.
 - **Memory:** a few MiB, whatever the file size; everything streams.
 - **File pickers:** `CtrFile.Extensions` lists the extensions. `CtrFile.Detect` sniffs the content, so misnamed files still work.
-- **Android and iOS:** the APIs take file paths. Files picked through the Storage Access Framework (Android) or document picker (iOS) arrive as streams or content URIs; copy them into your app's cache folder first. On Android, pass your app's files folder to `KeyLocator.LoadDefault` as the key folder (see [`samples/AndroidSmoke`](https://github.com/Nickel42/3ds-cia-library/tree/main/samples/AndroidSmoke)).
+- **Android and iOS:** the APIs take file paths. Files picked through the Storage Access Framework (Android) or document picker (iOS) arrive as streams or content URIs; copy them into your app's cache folder first. On Android, pass your app's files folder to `KeyLocator.LoadDefault` as the key folder (see [`samples/AndroidSmoke`](https://github.com/Nickel42/lib-3ds-kit/tree/main/samples/AndroidSmoke)).
 
 ## CDN folders
 
@@ -131,20 +131,20 @@ Pass a folder as the input to `ConvertAsync(..., CtrOutputFormat.Cia)` or `Decry
 
 The verdict is `Intact` when every check passes, `Bad` when any fails, and `Unknown` when the checks could not run (for example, missing keys for an encrypted file). Run it after a conversion to confirm the output is sound.
 
-## Command line (`3ds`)
+## Command line (`3ds-kit`)
 
 ```bash
-3ds keys
-3ds info "Game.3ds"
-3ds decrypt "Game.3ds"                      # -> Game.decrypted.3ds
-3ds convert "Game.3ds" --to cia
-3ds convert "Game.cia" --to cci --no-trim
-3ds convert "cdn/0004000000123400" --to cia # CDN folder -> decrypted CIA
-3ds trim "Game.3ds"
-3ds verify "Game.cia"                       # or a folder; add --recursive
+3ds-kit keys
+3ds-kit info "Game.3ds"
+3ds-kit decrypt "Game.3ds"                      # -> Game.decrypted.3ds
+3ds-kit convert "Game.3ds" --to cia
+3ds-kit convert "Game.cia" --to cci --no-trim
+3ds-kit convert "cdn/0004000000123400" --to cia # CDN folder -> decrypted CIA
+3ds-kit trim "Game.3ds"
+3ds-kit verify "Game.cia"                       # or a folder; add --recursive
 ```
 
-Run `3ds --help` for every option (`--keys-dir`, `--boot9`, `--aes-keys`, `--seeddb`, `--certs-from`, `--keep-encryption`, `--match-ticket-version`, …).
+Run `3ds-kit --help` for every option (`--keys-dir`, `--boot9`, `--aes-keys`, `--seeddb`, `--certs-from`, `--keep-encryption`, `--match-ticket-version`, …).
 
 ## Building from source
 
@@ -156,12 +156,12 @@ dotnet test
 dotnet pack -c Release -o artifacts
 ```
 
-The tests use fake keys and synthetic files, so they run anywhere. See [docs/TESTING.md](https://github.com/Nickel42/3ds-cia-library/blob/main/docs/TESTING.md) for testing with real files and [docs/SPEC.md](https://github.com/Nickel42/3ds-cia-library/blob/main/docs/SPEC.md) for byte layouts, design decisions and known limitations. Releases are described in [CONTRIBUTING.md](https://github.com/Nickel42/3ds-cia-library/blob/main/CONTRIBUTING.md).
+The tests use fake keys and synthetic files, so they run anywhere. See [docs/TESTING.md](https://github.com/Nickel42/lib-3ds-kit/blob/main/docs/TESTING.md) for testing with real files and [docs/SPEC.md](https://github.com/Nickel42/lib-3ds-kit/blob/main/docs/SPEC.md) for byte layouts, design decisions and known limitations. Releases are described in [CONTRIBUTING.md](https://github.com/Nickel42/lib-3ds-kit/blob/main/CONTRIBUTING.md).
 
 ## Legal
 
-This library is for working with files you dumped from hardware and software you own. It contains no Nintendo keys, certificates or other copyrighted Nintendo material; the test fixtures use randomly generated fake keys. Format details come from public documentation and other open-source projects; see [THIRD_PARTY_NOTICES.md](https://github.com/Nickel42/3ds-cia-library/blob/main/THIRD_PARTY_NOTICES.md). "Nintendo 3DS" is a trademark of Nintendo; this project is not affiliated with or endorsed by Nintendo.
+This library is for working with files you dumped from hardware and software you own. It contains no Nintendo keys, certificates or other copyrighted Nintendo material; the test fixtures use randomly generated fake keys. Format details come from public documentation and other open-source projects; see [THIRD_PARTY_NOTICES.md](https://github.com/Nickel42/lib-3ds-kit/blob/main/THIRD_PARTY_NOTICES.md). "Nintendo 3DS" is a trademark of Nintendo; this project is not affiliated with or endorsed by Nintendo.
 
 ## License
 
-[MIT](https://github.com/Nickel42/3ds-cia-library/blob/main/LICENSE) © 2026 Nickel42
+[MIT](https://github.com/Nickel42/lib-3ds-kit/blob/main/LICENSE) © 2026 Nickel42

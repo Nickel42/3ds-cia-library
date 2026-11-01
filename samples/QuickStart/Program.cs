@@ -1,11 +1,11 @@
 // The examples from the README, as a program CI compiles on every change.
 // usage: QuickStart <keys-folder> <file-or-cdn-folder> [output-folder]
-using ThreeDsCiaLibrary;
-using ThreeDsCiaLibrary.IO;
-using ThreeDsCiaLibrary.Keys;
-using ThreeDsCiaLibrary.Ncch;
-using ThreeDsCiaLibrary.Operations;
-using ThreeDsCiaLibrary.Verification;
+using Lib3dsKit;
+using Lib3dsKit.IO;
+using Lib3dsKit.Keys;
+using Lib3dsKit.Ncch;
+using Lib3dsKit.Operations;
+using Lib3dsKit.Verification;
 
 if (args.Length < 2)
 {

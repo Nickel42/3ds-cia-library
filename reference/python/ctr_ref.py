@@ -1,8 +1,8 @@
 """
-Reference implementation of the 3ds-cia-library 3DS (CTR) format logic.
+Reference implementation of the lib-3ds-kit 3DS (CTR) format logic.
 
 This module is the executable specification that the C# library
-(3ds-cia-library) mirrors byte-for-byte. It works on in-memory byte strings,
+(lib-3ds-kit) mirrors byte-for-byte. It works on in-memory byte strings,
 so it is only intended for small synthetic fixtures and for cross-checking.
 
 No Nintendo key material is contained here. All keys come from caller-supplied

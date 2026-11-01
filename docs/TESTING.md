@@ -22,7 +22,7 @@ The CDN tests build CDN folders from the fixture CIA with structurally valid fak
 
 ## 2. Real-file checklist
 
-Run these with the CLI (`3ds`, or `dotnet run --project tools/3ds-cia-library.Cli -- ...`). Put your `boot9.bin`, `aes_keys.txt` and `seeddb.bin` in your Azahar/Citra `sysdata` folder or `~/.3ds`, or pass `--keys-dir`.
+Run these with the CLI (`3ds-kit`, or `dotnet run --project tools/lib-3ds-kit.Cli -- ...`). Put your `boot9.bin`, `aes_keys.txt` and `seeddb.bin` in your Azahar/Citra `sysdata` folder or `~/.3ds`, or pass `--keys-dir`.
 
 | # | Do | Expect |
 |---|---|---|
@@ -52,7 +52,7 @@ On 288 eShop, Virtual Console, update and DLC CIAs (original, 7.x, New 3DS 9.6 a
   - `--keep-encryption` keeps each partition's crypto.
   - Updates and DLC give a clear error for CCI.
 - CDN folders split from six CIAs rebuild the original CIA byte for byte, and decrypt to the same bytes as decrypting the CIA.
-- The Linux build of `3ds` gives byte-identical output to Windows.
+- The Linux build of `3ds-kit` gives byte-identical output to Windows.
 
 Not yet checked: cartridge dumps (items 2–5 and 10), installing or booting in Azahar or on a console, a real (rather than reconstructed) CDN download, and New 3DS 9.3 (0x18) titles.
 

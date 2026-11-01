@@ -2,6 +2,12 @@
 
 All notable changes are listed here. Versions follow [Semantic Versioning](https://semver.org/); while the version is 0.x, minor versions may change the API.
 
+## Unreleased
+
+### Changed (breaking)
+- **Renamed to `lib-3ds-kit`:** the repository is now [Nickel42/lib-3ds-kit](https://github.com/Nickel42/lib-3ds-kit), the packages are `lib-3ds-kit` and `lib-3ds-kit.Cli`, and release downloads are named `lib-3ds-kit-cli-<version>-<platform>`. The namespace is now `Lib3dsKit` (was `ThreeDsCiaLibrary`; sub-namespaces such as `Lib3dsKit.IO`, `.Crypto` and `.Hashing` follow), and the command-line tool is now `3ds-kit` (was `3ds`; the binaries are `3ds-kit.dll`/`3ds-kit.exe`).
+- **Temporary output files** are named `<output>.lib-3ds-kit.tmp` (was `<output>.3ds-cia-library.tmp`).
+
 ## 0.11.0
 
 The library is now a single standalone package focused on converting and decrypting 3DS files.

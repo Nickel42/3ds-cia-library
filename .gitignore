@@ -2,6 +2,6 @@ bin/
 obj/
 *.user
 .vs/
-*.3ds-cia-library.tmp
+*.lib-3ds-kit.tmp
 reference/python/__pycache__/
 artifacts/
